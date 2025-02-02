@@ -3,7 +3,7 @@ import React from 'react'
 const Siderbar = () => {
   return (
     <div>
-      <p>Siderbar is here</p>
+      <p>Sideerbar</p>
     </div>
   )
 }
