@@ -1,13 +1,7 @@
-import Header from '@/components/dashboard/Header'
-import React from 'react'
+import React from 'react';
+import DashboardContent from '@/components/dashboard/DashboardContent';
 
-const DashboardHome = () => {
-  return (
-    <div className='flex flex-col'>
-      <p>Hello Dashboard</p>
-     
-    </div>
-  )
+export default function DashboardPage() {
+  return <DashboardContent />;
+  // return <>coming soon</>
 }
-
-export default DashboardHome
