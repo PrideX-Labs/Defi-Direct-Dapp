@@ -65,7 +65,7 @@ const config: Config = {
       },
       colors: {
         primary: "#9C2CFF",
-        'secomondary': "#0A0014",
+        'secondary': "#0A0014",
         'col-text': '#9747FFB2',
         'col-white': '#ffffff',
 
