@@ -1,11 +1,12 @@
+import React from 'react';
 import AboutUs from "@/components/homepage/AboutUs";
 import HeroSection from "@/components/homepage/HeroSection";
 import Logo from "@/components/Logo";
 import Image from "next/image";
 
-export default function Home() {
+const App = () => {
   return (
-    <div className=" text-white bg-purple-950" style={{ backgroundImage: "url('/homeBg.png')", backgroundSize: "cover",backgroundPosition: "cover", backgroundRepeat: "no-repeat"}}>
+    <div className="overflow-x-hidden text-white bg-purple-950" style={{ backgroundImage: "url('/homeBg.png')", backgroundSize: "cover",backgroundPosition: "cover", backgroundRepeat: "no-repeat"}}>
       
       <div className="pt-20">
         <HeroSection/> 
@@ -19,7 +20,7 @@ export default function Home() {
               className="w-[70%] mx-64 mt-28 h-[100vh]"
             />
     <div className=" mt-28 flex mx-64 w-[70%] items-center ">
-       <div className="mr-28">
+       <div className="mr-12">
           <h1 className="text-7xl">Easy to use crypto Spending platform</h1>
           <p className="text-3xl mt-12 ">Spend directly from your DeFi wallet anywhere, anytime—no intermediaries, no delays. Secure, fast, and built for the future.</p>
        </div>
@@ -40,7 +41,7 @@ export default function Home() {
               width={600} 
               height={600} 
               quality={100}
-              className="mr-28"
+              className="mr-12"
          />
          <div className="">
           <h1 className="text-7xl">Intuitive Dashboard</h1>
@@ -51,4 +52,6 @@ export default function Home() {
   </div>
     </div>
   );
-}
+};
+
+export default App;

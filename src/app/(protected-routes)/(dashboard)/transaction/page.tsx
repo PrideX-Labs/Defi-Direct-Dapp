@@ -1,11 +1,13 @@
 import React from 'react'
+import TransactionContent from '@/components/transaction/TransactionContent'
 
-const Transaction = () => {
+
+const TransactionPage = () => {
   return (
-    <div className='flex flex-col'>
-      <p>Hello Skinny</p>
+    <div>
+      <TransactionContent />
     </div>
   )
 }
 
-export default Transaction
+export default TransactionPage

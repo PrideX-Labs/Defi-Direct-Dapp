@@ -3,20 +3,8 @@
 import React from 'react';
 import { Avatar, Dropdown, Menu } from 'antd';
 import { BellOutlined, DownOutlined } from '@ant-design/icons';
-import { usePathname } from 'next/navigation';
 
 const Header = () => {
-  const pathname = usePathname();
-
-  const getPageTitle = () => {
-    if (pathname?.includes('transaction')) {
-      return 'Transactions';
-    } else if (pathname?.includes('settings')) {
-      return 'Settings';
-    }
-    return 'Welcome 👋';
-  };
-
   const menu = (
     <Menu className="bg-[#1a1a2e] text-white">
       <Menu.Item key="1" className="hover:bg-[#262640]">Profile</Menu.Item>
@@ -26,11 +14,11 @@ const Header = () => {
   );
 
   return (
-    <div className="flex justify-center bg-[#0A0014] items-center w-full py-2">
+    <div className="flex justify-center bg-[#0A0014] items-center w-full py-6">
       <div className=" px-10 py-4 rounded-lg shadow-md w-full max-w-screen-2xl">
         <div className="flex justify-between items-center">
-          {/* Left - Dynamic Page Title */}
-          <h1 className="text-3xl font-semibold text-white">{getPageTitle()}</h1>
+          {/* Left - Welcome Message */}
+          <h1 className="text-3xl  font-semibold text-white">Transactions</h1>
 
           {/* Right - Icons and User Profile */}
           <div className="flex items-center space-x-6">
