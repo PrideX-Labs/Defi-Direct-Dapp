@@ -9,8 +9,8 @@ const Sidebar = () => {
   const [active, setActive] = useState('Dashboard');
 
   const menuItems = [
-    { name: 'Dashboard', icon: <FaThLarge />, link: '/' },
-    { name: 'Transactions', icon: <FaExchangeAlt />, link: '/transactions' },
+    { name: 'Dashboard', icon: <FaThLarge />, link: '/dashboard' },
+    { name: 'Transactions', icon: <FaExchangeAlt />, link: '/transaction' },
     { name: 'Settings', icon: <FaCog />, link: '/settings' },
   ];
 
@@ -27,7 +27,7 @@ const Sidebar = () => {
             href={item.link}
             className={cn(
               'flex h-[68px] gap-3 p-3 rounded-lg transition-all duration-200 items-center',
-              active === item.name ? 'bg-purple-600' : 'hover:bg-gray-800'
+              active === item.name ? 'bg-gradient-to-r from-[#5B2B99] to-black' : 'hover:bg-gray-800'
             )}
             onClick={() => setActive(item.name)}
           >
