@@ -1,5 +1,5 @@
-// src/components/Header.tsx
-'use client';
+// components/Header.tsx
+'use client'; // Mark this as a client component
 
 import React from 'react';
 import { Avatar, Dropdown, Menu } from 'antd';
@@ -8,13 +8,14 @@ import { usePathname } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useWallet } from '@/context/WalletContext';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Header: React.FC<{
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const pathname = usePathname();
-  const { connectedAddress, connectWallet, disconnectWallet, contract } = useWallet();
+  const { connectedAddress, disconnectWallet } = useWallet();
 
   const getPageTitle = () => {
     if (pathname?.includes('transaction')) return 'Transactions';
@@ -24,16 +25,6 @@ const Header: React.FC<{
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const handleConnect = async () => {
-    try {
-      await connectWallet();
-      toast.success("Wallet connected successfully!");
-    } catch (error) {
-      const err = error as Error;
-      toast.error(`Error: ${err.message}`);
-    }
   };
 
   const menu = (
@@ -72,12 +63,7 @@ const Header: React.FC<{
                   </div>
                 </Dropdown>
               ) : (
-                <button
-                  onClick={handleConnect}
-                  className="flex items-center bg-[#1A0E2C] px-4 py-2 rounded-full space-x-3 cursor-pointer shadow-md hover:bg-[#2A1C44] transition"
-                >
-                  <p className="text-white text-sm font-medium">Connect Wallet</p>
-                </button>
+                <ConnectButton />
               )}
             </div>
 

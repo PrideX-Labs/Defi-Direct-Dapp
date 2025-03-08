@@ -1,47 +1,37 @@
-// src/context/WalletContext.tsx
-'use client';
+// context/WalletContext.tsx
+'use client'; // Mark this as a client component
 
-import React, { createContext, useContext, useState } from 'react';
-import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../paydirect';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
+
 interface WalletContextType {
   connectedAddress: string | null;
-  contract: ethers.Contract | null;
-  connectWallet: () => Promise<void>;
+  isConnecting: boolean;
+  isAuthenticated: boolean;
   disconnectWallet: () => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [connectedAddress, setConnectedAddress] = useState<string | null>(null);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
-  const connectWallet = async () => {
-    try {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        setConnectedAddress(address);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-        const contractInstance = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-        setContract(contractInstance);
-      } else {
-        throw new Error("MetaMask is not installed");
-      }
-    } catch (error) {
-      console.error("Error connecting wallet:", error);
-    }
-  };
-
-  const disconnectWallet = () => {
-    setConnectedAddress(null);
-    setContract(null);
-  };
+  useEffect(() => {
+    setIsAuthenticated(isConnected);
+  }, [isConnected]);
 
   return (
-    <WalletContext.Provider value={{ connectedAddress, contract, connectWallet, disconnectWallet }}>
+    <WalletContext.Provider
+      value={{
+        connectedAddress: address || null,
+        isConnecting: false, // RainbowKit handles connecting state
+        isAuthenticated,
+        disconnectWallet: disconnect,
+      }}
+    >
       {children}
     </WalletContext.Provider>
   );
