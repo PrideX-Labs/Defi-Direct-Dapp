@@ -27,10 +27,11 @@ function SettingsContent() {
 
   return (
     <div className="text-white px-4 w-fit">
-      <div className="bg-gradient-to-b from-[#151021] via-[#151021] to-[#160429] rounded-t-2xl py-6 px-10">
-        <div className="flex flex-col items-center">
-          {/* Conditionally render wallet logo and name */}
+      
+          {/* Display wallet logo, address, and name only when connected */}
           {isConnected && connectedAddress && walletIcon && (
+            <div className="bg-gradient-to-b from-[#151021] via-[#151021] to-[#160429] rounded-t-2xl py-6 px-10">
+        <div className="flex flex-col items-center">
             <>
               <div className="w-32 h-32 bg-white rounded-full mb-6 flex items-center justify-center">
                 <img 
@@ -43,39 +44,34 @@ function SettingsContent() {
                 {truncateAddress(connectedAddress)}
               </h2>
               <p className="text-lg text-gray-400 mb-4">{walletName}</p>
+
+              {/* Display "Disconnect Wallet" button only when a wallet is connected */}
+              <button
+                onClick={handleDisconnect}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-12 rounded-2xl w-full max-w-sm flex items-center justify-center gap-2"
+              >
+                Disconnect Wallet
+              </button>
             </>
-          )}
-
-          {/* Connect Wallet Button (shown when no wallet is connected) */}
-          {!isConnected && (
-            <button
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-12 rounded-2xl w-full max-w-sm flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Connect Wallet
-            </button>
-          )}
-
-          {/* Disconnect Wallet Button (shown when wallet is connected) */}
-          {isConnected && (
-            <button
-              onClick={handleDisconnect}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-12 rounded-2xl w-full max-w-sm flex items-center justify-center gap-2"
-            >
-              Disconnect Wallet
-            </button>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-4 text-red-500 text-sm">
-              {error}
             </div>
-          )}
-        </div>
       </div>
+          )}
+
+          
+      {/* Display nothing when no wallet is connected */}
+      {!isConnected && (
+        <p className="text-gray-400 text-center text-lg font-medium  px-10 py-6">
+          No wallet connected.
+        </p>
+      )}
+
+      {/* Display error message if any */}
+      {error && (
+        <div className="mt-4 text-red-500 text-sm bg-red-100 p-3 rounded-lg text-center">
+          {error}
+        </div>
+      )}
+        
     </div>
   );
 }
