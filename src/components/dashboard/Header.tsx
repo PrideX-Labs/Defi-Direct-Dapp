@@ -1,5 +1,5 @@
-// components/Header.tsx
-'use client'; // Mark this as a client component
+// src/components/Header.tsx
+'use client';
 
 import React from 'react';
 import { Avatar, Dropdown, Menu } from 'antd';
@@ -15,7 +15,7 @@ const Header: React.FC<{
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const pathname = usePathname();
-  const { connectedAddress, disconnectWallet } = useWallet();
+  const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
 
   const getPageTitle = () => {
     if (pathname?.includes('transaction')) return 'Transactions';
@@ -57,7 +57,7 @@ const Header: React.FC<{
                     <DownOutlined className="text-white text-sm" />
                     <Avatar 
                       size="large" 
-                      src="https://avatars.githubusercontent.com/u/1?v=4" 
+                      src={walletIcon || ""} 
                       className="border-2 border-purple-500" 
                     />
                   </div>
@@ -70,7 +70,7 @@ const Header: React.FC<{
             <div className="flex lg:hidden items-center space-x-3">
               <Avatar 
                 size="default" 
-                src="https://avatars.githubusercontent.com/u/1?v=4" 
+                src={walletIcon || 'https://avatars.githubusercontent.com/u/1?v=4'} 
                 className="border-2 border-purple-500" 
               />
               <button 
