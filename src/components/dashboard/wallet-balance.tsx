@@ -7,10 +7,10 @@ import { TransferModal } from "./wallet/transfer-modal";
 
 interface WalletBalanceProps {
   balance: number; // Total balance in NGN
-  onTransfer: () => void; // Transfer handler
+ 
 }
 
-export default function WalletBalance({ balance, onTransfer }: WalletBalanceProps) {
+export default function WalletBalance({ balance  }: WalletBalanceProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   
@@ -28,7 +28,7 @@ export default function WalletBalance({ balance, onTransfer }: WalletBalanceProp
             })}
           </p>
           <button
-            onClick={onTransfer} // Use the onTransfer handler
+            onClick={() => setIsOpen(true)}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-3 text-white transition-opacity hover:opacity-90"
           >
             <ArrowUpRight className="h-5 w-5" />

@@ -18,7 +18,7 @@ export default function Dashboard() {
   return (
     <div className="grid gap-6 p-6 md:grid-cols-2">
       <div className="space-y-6">
-        <WalletBalance balance={totalNgnBalance} onTransfer={handleTransfer} /> {/* Pass total balance in NGN */}
+        <WalletBalance balance={totalNgnBalance} /> {/* Pass total balance in NGN */}
         <TransactionList />
       </div>
       <div>

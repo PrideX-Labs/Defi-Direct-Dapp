@@ -1,8 +1,13 @@
 "use client"
 
+import type React from "react"
+
 import { ChevronDown } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
+import { BankSelect } from "./bank-select"
+import { useState, useEffect } from "react"
+import { TransferSummary } from "./transfer-summary"
 
 interface TransferModalProps {
   open: boolean
@@ -10,7 +15,67 @@ interface TransferModalProps {
   balance: number
 }
 
+interface TransferFormData {
+  bank: string
+  bankName: string
+  accountNumber: string
+  amount: string
+}
+
 export function TransferModal({ open, onOpenChange, balance }: TransferModalProps) {
+  const [showSummary, setShowSummary] = useState(false)
+  const [formData, setFormData] = useState<TransferFormData>({
+    bank: "",
+    bankName: "",
+    accountNumber: "",
+    amount: "",
+  })
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!open) {
+      // Reset form data and view when modal is closed
+      setTimeout(() => {
+        setFormData({
+          bank: "",
+          bankName: "",
+          accountNumber: "",
+          amount: "",
+        })
+        setShowSummary(false)
+      }, 300) // Small delay to ensure animation completes
+    }
+  }, [open])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setShowSummary(true)
+  }
+
+  const handleConfirmTransfer = () => {
+    console.log("Transfer confirmed:", formData)
+    onOpenChange(false) // Close the modal after confirmation
+  }
+
+  const isFormValid = formData.bank && formData.accountNumber && formData.amount
+
+  if (showSummary) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-xl border-none bg-transparent p-0">
+          <TransferSummary
+            amount={Number.parseFloat(formData.amount)}
+            recipient="Leo Joseph"
+            accountNumber={formData.accountNumber}
+            bankName={formData.bankName}
+            onBack={() => setShowSummary(false)}
+            onConfirm={handleConfirmTransfer}
+          />
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md border-none bg-[#1C1C27] p-0 text-white">
@@ -25,21 +90,18 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
           </div>
 
           <div className="rounded-2xl bg-[#14141B] p-6">
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
-                  <select
-                    className="w-full appearance-none rounded-xl bg-[#2F2F3A] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select Bank
-                    </option>
-                    <option value="first-bank">First Bank</option>
-                    <option value="uba">UBA</option>
-                    <option value="zenith">Zenith Bank</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                  <BankSelect
+                    onSelect={(bankId, bankName) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        bank: bankId,
+                        bankName,
+                      }))
+                    }}
+                  />
                 </div>
               </div>
 
@@ -47,14 +109,28 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
                 <input
                   type="text"
                   placeholder="Enter Account number"
+                  value={formData.accountNumber}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      accountNumber: e.target.value,
+                    }))
+                  }
                   className="w-full rounded-xl bg-[#2F2F3A] px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
               <div className="space-y-2">
                 <input
-                  type="number"
+                  type="text"
                   placeholder="Amount"
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      amount: e.target.value,
+                    }))
+                  }
                   className="w-full rounded-xl bg-[#2F2F3A] px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <p className="text-sm text-gray-400">Available balance of the token should show here</p>
@@ -62,7 +138,12 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
 
               <button
                 type="submit"
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-3 text-white transition-opacity hover:opacity-90"
+                disabled={!isFormValid}
+                className={`mt-8 w-full rounded-2xl py-4 text-white transition-all ${
+                  isFormValid
+                    ? "bg-gradient-to-r from-purple-600 to-purple-500 hover:opacity-90"
+                    : "bg-gray-600 cursor-not-allowed opacity-50"
+                }`}
               >
                 Transfer
               </button>

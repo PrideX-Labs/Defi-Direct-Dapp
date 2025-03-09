@@ -47,41 +47,48 @@ console.log("usdc NGN balance:", usdc);
     setTotalNgnBalance(total);
   };
 
-  useEffect(() => {
-    console.log("useEffect triggered");
-    setIsAuthenticated(isConnected);
+  // src/context/WalletContext.tsx
+useEffect(() => {
+  console.log("useEffect triggered");
+  setIsAuthenticated(isConnected);
 
-    if (!isConnected || !connector || !address) {
-      console.log("Wallet not connected or address not available");
-      setWalletIcon(null);
-      setWalletName(null);
-      setUsdcBalance("0");
-      setUsdtBalance("0");
-      setTotalNgnBalance(0);
-      return;
-    }
+  if (!isConnected || !connector || !address) {
+    console.log("Wallet not connected or address not available");
+    setWalletIcon(null);
+    setWalletName(null);
+    setUsdcBalance("0");
+    setUsdtBalance("0");
+    setTotalNgnBalance(0);
+    return;
+  }
 
-    const walletId = connector.id.toLowerCase();
-    setWalletIcon(walletIcons[walletId] || null);
-    setWalletName(connector.name || null);
+  const walletId = connector.id.toLowerCase();
+  console.log("Connector ID:", walletId); // Log the connector ID
+  setWalletIcon(walletIcons[walletId] || 'https://avatars.githubusercontent.com/u/1?v=4'); // Set wallet icon or fallback
+  setWalletName(connector.name || null);
 
-    console.log("walletId", walletId)
-    // Fetch USDC and USDT balances together
-    const fetchBalances = async () => {
-      console.log("Fetching balances...");
-      const usdcBalance = await fetchTokenBalance("USDC", address);
-      const usdtBalance = await fetchTokenBalance("USDT", address);
+  // Function to fetch balances
+  const fetchBalances = async () => {
+    console.log("Fetching balances...");
+    const usdcBalance = await fetchTokenBalance("USDC", address);
+    const usdtBalance = await fetchTokenBalance("USDT", address);
 
-      setUsdcBalance(usdcBalance);
-      setUsdtBalance(usdtBalance);
+    setUsdcBalance(usdcBalance);
+    setUsdtBalance(usdtBalance);
 
-      // Calculate total balance in NGN after both balances are fetched
-      await updateTotalNgnBalance(usdcBalance, usdtBalance);
-    };
+    // Calculate total balance in NGN after both balances are fetched
+    await updateTotalNgnBalance(usdcBalance, usdtBalance);
+  };
 
-    fetchBalances();
-  }, [isConnected, connector, address]); // Only re-run if these dependencies change
+  // Fetch balances immediately
+  fetchBalances();
 
+  // Set up an interval to fetch balances every 5 seconds
+  const intervalId = setInterval(fetchBalances, 5000);
+
+  // Clean up the interval when the component unmounts or dependencies change
+  return () => clearInterval(intervalId);
+}, [isConnected, connector, address]); // Only re-run if these dependencies change
   return (
     <WalletContext.Provider
       value={{
