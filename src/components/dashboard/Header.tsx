@@ -57,7 +57,7 @@ const Header: React.FC<{
                     <DownOutlined className="text-white text-sm" />
                     <Avatar 
                       size="large" 
-                      src={walletIcon || ""} 
+                      src={walletIcon} 
                       className="border-2 border-purple-500" 
                     />
                   </div>

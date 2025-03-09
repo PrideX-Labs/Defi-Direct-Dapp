@@ -31,7 +31,7 @@ const App = () => {
         </div>
 
         {/* Crypto Spending Section */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-28 ">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             <div className="w-full lg:w-1/2">
               <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold">
