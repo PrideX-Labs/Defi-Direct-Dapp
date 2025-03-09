@@ -1,17 +1,21 @@
+// src/components/Header.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Avatar, Dropdown, Menu } from 'antd';
 import { BellOutlined, DownOutlined, MenuOutlined } from '@ant-design/icons';
 import { usePathname } from 'next/navigation';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useWallet } from '@/context/WalletContext';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-interface HeaderProps {
+const Header: React.FC<{
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const Header: React.FC<HeaderProps> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
+}> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const pathname = usePathname();
+  const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
 
   const getPageTitle = () => {
     if (pathname?.includes('transaction')) return 'Transactions';
@@ -19,11 +23,21 @@ const Header: React.FC<HeaderProps> = ({ isMobileMenuOpen, setIsMobileMenuOpen }
     return 'Welcome 👋';
   };
 
+  const truncateAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   const menu = (
     <Menu className="bg-[#1a1a2e] text-white">
       <Menu.Item key="1" className="hover:bg-[#262640]">Profile</Menu.Item>
       <Menu.Item key="2" className="hover:bg-[#262640]">Settings</Menu.Item>
-      <Menu.Item key="3" className="hover:bg-[#262640]">Logout</Menu.Item>
+      <Menu.Item 
+        key="3" 
+        className="hover:bg-[#262640]"
+        onClick={disconnectWallet}
+      >
+        Logout
+      </Menu.Item>
     </Menu>
   );
 
@@ -36,29 +50,42 @@ const Header: React.FC<HeaderProps> = ({ isMobileMenuOpen, setIsMobileMenuOpen }
           <div className="flex items-center">
             <div className="hidden lg:flex items-center space-x-6">
               <BellOutlined className="text-white text-2xl cursor-pointer hover:text-purple-400 transition" />
-              <Dropdown overlay={menu} trigger={['click']}>
-                <div className="flex items-center bg-[#1A0E2C] px-4 py-2 rounded-full space-x-3 cursor-pointer shadow-md hover:bg-[#2A1C44] transition">
-                  <p className="text-white text-sm font-medium">1A1Z6MEA...9uC</p>
-                  <DownOutlined className="text-white text-sm" />
-                  {/* <Avatar size="large" src="https://avatars.githubusercontent.com/u/1?v=4" className="border-2 border-purple-500" /> */}
-
-                </div>
-              </Dropdown>
+              {connectedAddress ? (
+                <Dropdown overlay={menu} trigger={['click']}>
+                  <div className="flex items-center bg-[#1A0E2C] px-4 py-2 rounded-full space-x-3 cursor-pointer shadow-md hover:bg-[#2A1C44] transition">
+                    <p className="text-white text-sm font-medium">{truncateAddress(connectedAddress)}</p>
+                    <DownOutlined className="text-white text-sm" />
+                    <Avatar 
+                      size="large" 
+                      src={walletIcon || ""} 
+                      className="border-2 border-purple-500" 
+                    />
+                  </div>
+                </Dropdown>
+              ) : (
+                <ConnectButton />
+              )}
             </div>
 
             <div className="flex lg:hidden items-center space-x-3">
-              <Avatar size="default" src="https://avatars.githubusercontent.com/u/1?v=4" className="border-2 border-purple-500" />
-              <button onClick={() => setIsMobileMenuOpen(prev => !prev)} className="p-2 hover:bg-[#1A0E2C] rounded-lg transition">
+              <Avatar 
+                size="default" 
+                src={walletIcon || 'https://avatars.githubusercontent.com/u/1?v=4'} 
+                className="border-2 border-purple-500" 
+              />
+              <button 
+                onClick={() => setIsMobileMenuOpen(prev => !prev)} 
+                className="p-2 hover:bg-[#1A0E2C] rounded-lg transition"
+              >
                 <MenuOutlined className="text-white text-xl" />
               </button>
             </div>
           </div>
         </div>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 };
 
 export default Header;
-
-

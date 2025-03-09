@@ -1,12 +1,18 @@
-import SettingsContent from '@/components/settings/SettingsContent'
-import React from 'react'
+// src/components/settings/Settings.tsx
+'use client';
+
+import React from 'react';
+import SettingsContent from '@/components/settings/SettingsContent';
+
 
 const Settings = () => {
+
+
   return (
     <div className='flex flex-col'>
-      <SettingsContent/>
+      <SettingsContent />
     </div>
-  )
-}
+  );
+};
 
-export default Settings
+export default Settings;
