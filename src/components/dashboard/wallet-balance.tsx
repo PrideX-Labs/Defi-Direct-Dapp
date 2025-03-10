@@ -1,16 +1,19 @@
-"use client"
+// src/components/dashboard/wallet-balance.tsx
+"use client";
 
-import { ArrowUpRight } from "lucide-react"
-
-import { useState } from "react"
-import { TransferModal } from "./wallet/transfer-modal"
+import { ArrowUpRight } from "lucide-react";
+import { useState } from "react";
+import { TransferModal } from "./wallet/transfer-modal";
 
 interface WalletBalanceProps {
-  balance: number
+  balance: number; // Total balance in NGN
+ 
 }
 
-export default function WalletBalance({ balance = 4000.0 }: WalletBalanceProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export default function WalletBalance({ balance  }: WalletBalanceProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  
 
   return (
     <>
@@ -18,7 +21,7 @@ export default function WalletBalance({ balance = 4000.0 }: WalletBalanceProps) 
         <div className="space-y-3">
           <h2 className="text-lg font-medium text-white">Wallet Balance</h2>
           <p className="text-4xl font-semibold text-white">
-            $
+            ₦
             {balance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -35,6 +38,5 @@ export default function WalletBalance({ balance = 4000.0 }: WalletBalanceProps) 
       </div>
       <TransferModal open={isOpen} onOpenChange={setIsOpen} balance={balance} />
     </>
-  )
+  );
 }
-

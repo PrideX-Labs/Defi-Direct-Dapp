@@ -35,7 +35,7 @@ function SettingsContent() {
             <>
               <div className="w-32 h-32 bg-white rounded-full mb-6 flex items-center justify-center">
                 <img 
-                  src={walletIcon}  
+                  src={walletIcon }  
                   alt={walletName || 'Wallet'} 
                   className="w-[7.8rem] h-30 rounded-full" 
                 />
