@@ -1,15 +1,13 @@
-// components/homepage/HeroSection.tsx
-'use client'; // Mark this as a client component
+'use client';
 
-import Image from 'next/image';
 import React, { useEffect } from 'react';
 import Logo from '../Logo';
-import { useWallet } from '@/context/WalletContext';
+import { useWallet } from '@/context/WalletContext'; // Use isAuthenticated from useWallet
 import { useRouter } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 function HeroSection() {
-  const { connectedAddress, isAuthenticated, disconnectWallet } = useWallet();
+  const { connectedAddress, isAuthenticated, disconnectWallet } = useWallet(); // Use isAuthenticated from useWallet
   const router = useRouter();
 
   // Redirect to dashboard after successful connection
@@ -20,15 +18,17 @@ function HeroSection() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col items-center text-center">
-        <div className="mt-8">
-          <Logo />
+    <div className="mx-auto max-w-4xl">
+      <div className='flex flex-col items-center text-center'>
+        {/* Floating crypto icons */}
+        <div className="absolute inset-0 z-0">
+          {/* Your floating icons code */}
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl mt-8 sm:mt-12 lg:mt-16 font-bold">
+        <div className='mt-8'><Logo /></div>
+        <h1 className="text-7xl mt-8">
           Take Control of Your Finances with Seamless Crypto Spending
         </h1>
-        <p className="mt-6 text-lg sm:text-xl lg:text-2xl mx-4 sm:mx-8 lg:mx-12">
+        <p className="mt-8 text-2xl mx-44">
           Spend directly from your DeFi wallet anywhere, anytime—no intermediaries, no delays. Secure, fast, and built for the future.
         </p>
         <div className="mt-8">
