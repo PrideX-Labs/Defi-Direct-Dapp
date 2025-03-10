@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Suspense, lazy } from 'react';
 import { Steps } from 'antd';
 import Footer from '@/components/Footer';
+import WaitList from '@/components/homepage/WaitList';
 
 const LazyAboutUs = lazy(() => import("@/components/homepage/AboutUs"));
 
@@ -41,7 +42,7 @@ const App = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             <div className="w-full lg:w-1/2">
               <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold">
-                Easy to use crypto Spending platform
+                Easy to use crypto spending platform
               </h1>
               <p className="text-lg sm:text-xl lg:text-3xl mt-4 sm:mt-6 lg:mt-12">
                 Spend directly from your DeFi wallet anywhere, anytime—no intermediaries, 
@@ -90,7 +91,8 @@ const App = () => {
         {/* About Us Section */}
         
         <Steps/>
-        
+
+        <WaitList/>
         <Suspense fallback={
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
@@ -108,4 +110,3 @@ const App = () => {
 
 export default App;
 
-// https://dribbble.com/shots/25698933-Crypto-Wallet-Landing-Page-Design

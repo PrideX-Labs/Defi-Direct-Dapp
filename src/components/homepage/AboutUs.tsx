@@ -23,8 +23,8 @@ const ProductProcess = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center py-16 text-white">
-      <h1 className="text-4xl font-bold text-center mb-10">How It Works</h1>
+    <div className="flex flex-col items-center py-16 text-white my-10">
+      <h1 className="text-5xl font-bold text-center mb-20">How It Works</h1>
 
       <div className="flex flex-wrap justify-center items-center w-full max-w-5xl space-y-14 md:space-y-0 md:space-x-10">
         {steps.map((step, index) => (
