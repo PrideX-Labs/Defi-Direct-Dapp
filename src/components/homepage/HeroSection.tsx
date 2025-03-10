@@ -1,8 +1,26 @@
-import Image from 'next/image'
-import React from 'react'
-import Logo from '../Logo'
+// components/homepage/HeroSection.tsx
+'use client';
+
+import Image from 'next/image';
+import React from 'react';
+import Logo from '../Logo';
+import { useWallet } from '@/context/WalletContext'; // Import WalletContext
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 function HeroSection() {
+  const { connectWallet, connectedAddress } = useWallet(); // Use wallet context
+  const router = useRouter(); // Initialize useRouter
+
+  const handleConnectWallet = async () => {
+    try {
+      await connectWallet(); // Connect wallet
+      console.log('Wallet connected successfully!');
+      router.push('/dashboard'); // Redirect to dashboard
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+    }
+  };
+
   return (
 <div className="mx-auto max-w-4xl">
 
@@ -94,36 +112,3 @@ function HeroSection() {
 }
 
 export default HeroSection
-// import Image from 'next/image'
-// import React from 'react'
-// import Logo from '../Logo'
-
-// function HeroSection() {
-//   return (
-//     <div className="relative mx-auto max-w-4xl text-center">
-      
-
-//       {/* Main content */}
-//       <div className="relative flex flex-col items-center">
-//         <div className="mt-8"> <Logo /></div>
-//         <h1 className="text-7xl mt-8 text-white font-bold">
-//           Take Control of Your Finances with Seamless Crypto Spending
-//         </h1>
-//         <p className="mt-8 text-2xl mx-20 text-gray-300">
-//           Spend directly from your DeFi wallet anywhere, anytime—no intermediaries, no delays. Secure, fast, and built for the future.
-//         </p>
-//         <button className="bg-purple-600 mt-8 text-white rounded-2xl py-4 px-6 text-lg flex items-center gap-2 justify-center shadow-lg hover:bg-purple-700 transition-all">
-//           <Image 
-//             src="https://res.cloudinary.com/dxswouxj5/image/upload/v1738581211/Add-icon_tfjcx4.png" 
-//             alt="connect wallet icon"
-//             width={19} 
-//             height={19} 
-//           />
-//           <h1 className='text-2xl'>Connect Wallet</h1>
-//         </button>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default HeroSection

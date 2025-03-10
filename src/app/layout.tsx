@@ -1,7 +1,9 @@
+// app/layout.tsx
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import StyledComponentsRegistry from '@/lib/AntdRegistry';
+import { WalletProvider } from '@/context/WalletContext'; // Import WalletProvider
 
 const roboto = Inter({
   subsets: ['latin'],
@@ -21,9 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.className}>
-        <StyledComponentsRegistry> {children}</StyledComponentsRegistry>
+        <StyledComponentsRegistry>
+          <WalletProvider> {/* Wrap with WalletProvider */}
+            {children}
+          </WalletProvider>
+        </StyledComponentsRegistry>
       </body>
     </html>
   );
 }
-
