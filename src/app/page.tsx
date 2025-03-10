@@ -4,16 +4,21 @@ import HeroSection from "@/components/homepage/HeroSection";
 import Logo from "@/components/Logo";
 import Image from "next/image";
 import { Suspense, lazy } from 'react';
+import { Steps } from 'antd';
+import Footer from '@/components/Footer';
 
 const LazyAboutUs = lazy(() => import("@/components/homepage/AboutUs"));
 
 const App = () => {
   return (
-    <div className="overflow-x-hidden text-white bg-purple-950">
+    <div className="overflow-x-hidden text-white bg-gradient-to-r  from-black via-[#5B2B99] to-black">
       <div 
-        className="pt-4 sm:pt-8 md:pt-12 lg:pt-20 bg-cover bg-center bg-no-repeat min-h-screen"
-        style={{ backgroundImage: "url('/homeBg.png')" }}
+        className=" md:pt-12 lg:pt-20 bg-cover bg-top bg-no-repeat "
+        style={{ backgroundImage: "url('/bg.png')" }}
       >
+        <div>
+
+          
         <HeroSection/>
         
         {/* Hero Image Section */}
@@ -25,11 +30,12 @@ const App = () => {
             height={800}
             quality={75}
             priority={true}
-            className="w-[95%] sm:w-[85%] lg:w-[70%] mx-auto mt-8 sm:mt-16 lg:mt-28"
-            loading="eager"
+            className="w-full sm:w-[85%] lg:w-[70%] mx-auto -mt-8 sm:mt-16 lg:mt-28"
+            
           />
         </div>
-
+    
+        </div>
         {/* Crypto Spending Section */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-28">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -57,7 +63,7 @@ const App = () => {
         </div>
 
         {/* Dashboard Section */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-28 pb-12 sm:pb-20 lg:pb-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 lg:mt-28 pb-12 sm:pb-20 ">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             <div className="w-full lg:w-1/2 order-2 lg:order-1">
               <Image 
@@ -82,6 +88,9 @@ const App = () => {
         </div>
 
         {/* About Us Section */}
+        
+        <Steps/>
+        
         <Suspense fallback={
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
@@ -89,9 +98,14 @@ const App = () => {
         }>
           <LazyAboutUs />
         </Suspense>
-      </div>
+       
+        <Footer/>
+        </div>
+       
     </div>
   );
 };
 
 export default App;
+
+// https://dribbble.com/shots/25698933-Crypto-Wallet-Landing-Page-Design
