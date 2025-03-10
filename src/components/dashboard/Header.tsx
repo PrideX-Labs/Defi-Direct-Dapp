@@ -8,13 +8,14 @@ import { usePathname } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useWallet } from '@/context/WalletContext';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Header: React.FC<{
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const pathname = usePathname();
-  const { connectedAddress, connectWallet, disconnectWallet, contract } = useWallet();
+  const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
 
   const getPageTitle = () => {
     if (pathname?.includes('transaction')) return 'Transactions';
@@ -24,16 +25,6 @@ const Header: React.FC<{
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const handleConnect = async () => {
-    try {
-      await connectWallet();
-      toast.success("Wallet connected successfully!");
-    } catch (error) {
-      const err = error as Error;
-      toast.error(`Error: ${err.message}`);
-    }
   };
 
   const menu = (
@@ -66,25 +57,20 @@ const Header: React.FC<{
                     <DownOutlined className="text-white text-sm" />
                     <Avatar 
                       size="large" 
-                      src="https://avatars.githubusercontent.com/u/1?v=4" 
+                      src={walletIcon} 
                       className="border-2 border-purple-500" 
                     />
                   </div>
                 </Dropdown>
               ) : (
-                <button
-                  onClick={handleConnect}
-                  className="flex items-center bg-[#1A0E2C] px-4 py-2 rounded-full space-x-3 cursor-pointer shadow-md hover:bg-[#2A1C44] transition"
-                >
-                  <p className="text-white text-sm font-medium">Connect Wallet</p>
-                </button>
+                <ConnectButton />
               )}
             </div>
 
             <div className="flex lg:hidden items-center space-x-3">
               <Avatar 
                 size="default" 
-                src="https://avatars.githubusercontent.com/u/1?v=4" 
+                src={walletIcon || 'https://avatars.githubusercontent.com/u/1?v=4'} 
                 className="border-2 border-purple-500" 
               />
               <button 
