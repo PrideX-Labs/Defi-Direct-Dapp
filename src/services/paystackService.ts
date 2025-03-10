@@ -31,8 +31,8 @@ export const createTransferRecipient = async (
       recipientData
     );
     return response.data;
-  } catch (error: any) {
-    console.error('Error creating transfer recipient:', error.response?.data || error.message);
+  } catch (error) {
+    console.error('Error creating transfer recipient:', error);
     throw error;
   }
 };
@@ -48,8 +48,8 @@ export const initiateTransfer = async (
       transferData
     );
     return response.data;
-  } catch (error: any) {
-    console.error('Error initiating transfer:', error.response?.data || error.message);
+  } catch (error) {
+    console.error('Error initiating transfer:', error);
     throw error;
   }
 };
