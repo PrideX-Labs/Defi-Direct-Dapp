@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const banks = await listBanks();
     return NextResponse.json({ success: true, data: banks });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
       { success: false, message: error.message || 'Failed to fetch banks' }, 
       { status: 500 }
