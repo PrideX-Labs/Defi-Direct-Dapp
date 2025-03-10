@@ -13,26 +13,26 @@ export default async function handler(
 
   try {
     const { amount, recipient_code, reason } = req.body;
-    
+
     if (!amount || !recipient_code) {
       return res.status(400).json({
         status: false,
         message: 'Amount and recipient code are required'
       });
     }
-    
+
     const transferData: TransferData = {
       source: 'balance',
       amount,
       recipient: recipient_code,
       reason: reason || 'Transfer payment'
     };
-    
+
     const response = await initiateTransfer(transferData);
     return res.status(200).json(response);
-  } catch (error: any) {
-    return res.status(error.response?.status || 500).json(
-      error.response?.data || { status: false, message: 'An error occurred' }
+  } catch (error) {
+    return res.status(500).json(
+      error || { status: false, message: 'An error occurred' }
     );
   }
 }
