@@ -22,7 +22,7 @@ const App = () => {
           <HeroSection />
 
           {/* Hero Image Section */}
-          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 transform hover:scale-[1.02] transition-transform duration-500">
             <Image
               src="https://res.cloudinary.com/dxswouxj5/image/upload/v1738585470/Group_26_f52v3r.png"
               alt="Dashboard image"
