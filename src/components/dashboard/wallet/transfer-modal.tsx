@@ -27,12 +27,12 @@ interface TransferModalProps {
   balance: number
 }
 
-interface TransferFormData {
-  bank: string
-  bankName: string
-  accountNumber: string
-  amount: string
-}
+// interface TransferFormData {
+//   bank: string
+//   bankName: string
+//   accountNumber: string
+//   amount: string
+// }
 
 export function TransferModal({ open, onOpenChange, balance }: TransferModalProps) {
   const [banks, setBanks] = useState<Bank[]>([]);
@@ -226,6 +226,7 @@ const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : us
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again later.");
+      console.error('Transfer error:', error);
     } finally {
       setLoading(false);
     }

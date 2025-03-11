@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Create recipient
     const recipientCode = await createRecipient(bankCode, accountNumber, accountName);
-    
+
     if (!recipientCode) {
       return NextResponse.json(
         { success: false, message: 'Failed to create recipient' },
@@ -54,18 +54,18 @@ export async function POST(request: NextRequest) {
         recipient: accountName
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Transfer error:', error);
 
-    if (error.response?.data?.message) {
+    if (error) {
       return NextResponse.json(
-        { success: false, message: error.response.data.message },
+        { success: false, message: error },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { success: false, message: error.message || 'Transfer failed' },
+      { success: false, message: error || 'Transfer failed' },
       { status: 500 }
     );
   }

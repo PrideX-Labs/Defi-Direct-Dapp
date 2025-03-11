@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { WalletProvider } from '@/context/WalletContext';
+//import { WalletProvider } from '@/context/WalletContext';
 import Header from '@/components/dashboard/Header';
 import Sidebar from '@/components/dashboard/Siderbar';
 

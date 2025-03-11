@@ -33,9 +33,9 @@ export default async function handler(
     const response = await createTransferRecipient(recipientData);
     
     return res.status(201).json(response);
-  } catch (error: any) {
-    return res.status(error.response?.status || 500).json(
-      error.response?.data || { status: false, message: 'An error occurred' }
+  } catch (error) {
+    return res.status(500).json(
+      error || { status: false, message: 'An error occurred' }
     );
   }
 }
