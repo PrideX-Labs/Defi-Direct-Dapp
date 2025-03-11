@@ -3,9 +3,17 @@
 import type React from "react"
 import { ChevronDown } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import Image from "next/image"
 import { useEffect, useState } from "react"
 import toast, { Toaster } from 'react-hot-toast'
+import { useWallet } from "@/context/WalletContext"
+import { formatBalance } from "@/utils/formatBalance"
+import { fetchTokenPrice } from "@/utils/fetchTokenprice"
+
+
+const tokens = [
+  { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png" },
+  { name: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png" },
+];
 
 interface Bank {
   id: number;
@@ -29,6 +37,8 @@ interface TransferFormData {
 export function TransferModal({ open, onOpenChange, balance }: TransferModalProps) {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedToken, setSelectedToken] = useState(tokens[0]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [formData, setFormData] = useState({
     bankCode: '',
     accountNumber: '',
@@ -36,6 +46,29 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     amount: ''
   });
   const [verifying, setVerifying] = useState(false);
+
+   const { usdcBalance, usdtBalance,} = useWallet();
+   const [usdcPrice, setUsdcPrice] = useState<number>(0); // Default to 1 to avoid 0 issue
+  const [usdtPrice, setUsdtPrice] = useState<number>(0);
+
+  const fetchPrices = async () => {
+    try {
+      const usdc = await fetchTokenPrice("usd-coin");
+      const usdt = await fetchTokenPrice("tether");
+
+      if (usdc) setUsdcPrice(usdc); // Only update if the response is valid
+      if (usdt) setUsdtPrice(usdt);
+    } catch (error) {
+      console.error("Failed to fetch token prices. Retaining previous prices.", error);
+    }
+  };
+
+
+   const usdcBalanceFormatted = formatBalance(usdcBalance);
+       const usdtBalanceFormatted = formatBalance(usdtBalance);
+   
+     
+
 
   // Fetch banks on component mount
   useEffect(() => {
@@ -66,7 +99,24 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     if (open) {
       fetchBanks();
     }
+
+    if (open) {
+      fetchPrices(); 
+      const interval = setInterval(fetchPrices, 5000);
+      return () => clearInterval(interval); 
+    }
   }, [open]);
+
+  const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const usdtNgnBalance = (parseFloat(usdtBalanceFormatted) * usdtPrice).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : usdtNgnBalance;
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -139,7 +189,7 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     }
 
     const amountValue = parseFloat(formData.amount);
-    if (isNaN(amountValue) || amountValue <= 0 || amountValue > balance) {
+    if (isNaN(amountValue) || amountValue <= 0 || amountValue > parseFloat(selectedTokenBalance.replace(/,/g, '')) ) {
       toast.error("Please enter a valid amount within your available balance");
       return;
     }
@@ -189,11 +239,43 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
           <div className="space-y-6 rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-3xl font-semibold">Transfer</h2>
-              <button className="flex items-center gap-2 rounded-full bg-[#2F2F3A] px-4 py-2 text-sm">
-                <Image src="/placeholder.svg" alt="Nigeria flag" width={24} height={24} className="rounded-full" />
-                Nigeria
-                <ChevronDown className="h-4 w-4" />
-              </button>
+              <div className="relative">
+      {/* Button to open dropdown */}
+      <button
+        type="button"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="flex items-center gap-2 rounded-full bg-[#2F2F3A] px-4 py-2 text-sm"
+      >
+        <img
+          src={selectedToken.logo}
+          alt={`${selectedToken.name} logo`}
+          width={24}
+          height={24}
+          className="rounded-full"
+        />
+        {selectedToken.name}
+        <ChevronDown className="h-4 w-4" />
+      </button>
+
+      {/* Dropdown Menu */}
+      {dropdownOpen && (
+        <div className="absolute z-10 left-0 mt-2 w-32 rounded-lg bg-[#2F2F3A] shadow-lg">
+          {tokens.map((token) => (
+            <button
+              key={token.name}
+              onClick={() => {
+                setSelectedToken(token);
+                setDropdownOpen(false);
+              }}
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-[#3B3B4F]"
+            >
+              <img src={token.logo} alt={token.name} width={20} height={20} className="rounded-full" />
+              {token.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
             </div>
 
             <div className="rounded-2xl bg-[#14141B] p-6">
@@ -255,10 +337,12 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
                     placeholder="Amount"
                     className="w-full rounded-xl bg-[#2F2F3A] px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     min={100}
-                    max={balance}
+                    max={parseFloat(selectedTokenBalance.replace(/,/g, ''))}
                     required
                   />
-                  <p className="text-sm text-gray-400">Available balance: ₦{balance.toLocaleString()}</p>
+                   <p className="text-sm text-gray-400">
+                    Available balance: ₦{selectedTokenBalance}
+                  </p>
                 </div>
 
                 <button
