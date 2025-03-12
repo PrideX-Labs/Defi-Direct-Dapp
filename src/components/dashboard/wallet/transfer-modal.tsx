@@ -121,7 +121,7 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
 
   useEffect(() => {
     if (!open) {
-      resetForm(); // Reset the form when the modal is closed
+      resetForm(); 
     }
   }, [open]);
 
