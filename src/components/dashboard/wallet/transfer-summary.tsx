@@ -12,7 +12,6 @@ interface TransferSummaryProps {
 }
 
 export function TransferSummary({
-  verifying,
   loading,
   amount,
   recipient,
