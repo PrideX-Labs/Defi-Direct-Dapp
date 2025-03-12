@@ -1,6 +1,6 @@
 // lib/rainbowKitConfig.ts
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { mainnet, polygon, optimism, arbitrum, base } from 'wagmi/chains';
+import {baseSepolia } from 'wagmi/chains';
 
 
 // Replace with your WalletConnect Project ID
@@ -10,7 +10,7 @@ const projectId = '159bf96cf1aa026dad215f2782ba2f1d';
 const config = getDefaultConfig({
   appName: 'Defi-Direct', // Your app name
   projectId, // WalletConnect Project ID
-  chains: [mainnet, polygon, optimism, arbitrum, base], // Supported chains
+  chains: [baseSepolia], // Supported chains
   ssr: true, // Enable server-side rendering (SSR) support
  
 });

@@ -12,7 +12,8 @@ export const fetchTokenPrice = async (tokenId: string) => {
     const data = await response.json();
     return data[tokenId].ngn; // Return the price in NGN
   } catch (error) {
-    console.error(`Error fetching ${tokenId} price:`, error);
+    // console.error(`Error fetching ${tokenId} price:`, error);
     throw error; // Re-throw the error to handle it in the calling function
   }
 };
+

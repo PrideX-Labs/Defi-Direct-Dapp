@@ -5,11 +5,15 @@ interface TransferSummaryProps {
   recipient: string
   accountNumber: string
   bankName: string
+  loading: boolean
+  verifying: boolean
   onBack: () => void
   onConfirm: () => void
 }
 
 export function TransferSummary({
+  verifying,
+  loading,
   amount,
   recipient,
   accountNumber,
@@ -38,7 +42,7 @@ export function TransferSummary({
             <p className="text-sm text-gray-500">Bank Transfer</p>
           </div>
 
-          <div className="flex justify-between ">
+          <div className="flex justify-between">
             <p className="text-base text-white">Recipient Details</p>
             <div className="text-right">
               <p className="text-sm text-gray-500">{recipient}</p>
@@ -53,7 +57,7 @@ export function TransferSummary({
             <p className="text-sm text-gray-500">1A1Z6MEA....9UuC</p>
           </div>
 
-          <div className="flex justify-between gap-28 ">
+          <div className="flex justify-between gap-28">
             <p className="text-base text-white">Transaction ID</p>
             <p className="text-xs text-gray-500 text-right" style={{ wordBreak: "break-all" }}>
               0x5eD8b7a3F9cD21A8a74fBc9E716D1698a9D4f7Cb563E9F6a7BBD2E9C4F1A3B7
@@ -74,11 +78,15 @@ export function TransferSummary({
 
       <button
         onClick={onConfirm}
-        className="mt-6 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 py-4 text-lg font-medium text-white transition-opacity hover:opacity-90"
+        disabled={loading} // Disable the button when loading
+        className={`mt-6 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 py-4 text-lg ${
+          loading
+            ? "bg-purple-600/50 cursor-not-allowed" // Dim and disable the button when loading
+            : "bg-gradient-to-r from-purple-600 to-purple-500 hover:opacity-90"
+        } font-medium text-white transition-opacity`}
       >
-        Confirm Transfer
+        {loading ? "Processing..." : "Confirm Transfer"}
       </button>
     </div>
-  )
+  );
 }
-
