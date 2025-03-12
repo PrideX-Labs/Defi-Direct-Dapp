@@ -12,11 +12,12 @@ import { TOKEN_ADDRESSES } from "@/config"
 import { useWallet } from "@/context/WalletContext"
 import { formatBalance } from "@/utils/formatBalance"
 import { fetchTokenPrice } from "@/utils/fetchTokenprice"
+import { TransferSummary } from "./transfer-summary"
 
 
 const tokens = [
-  { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png" },
-  { name: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png" },
+  { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png", address: TOKEN_ADDRESSES['USDC'] },
+  { name: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png", address: TOKEN_ADDRESSES['USDT'] },
 ];
 
 interface Bank {
@@ -41,6 +42,7 @@ interface TransferModalProps {
 export function TransferModal({ open, onOpenChange, balance }: TransferModalProps) {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -105,7 +107,17 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     if (open) {
       fetchBanks();
     }
-
+    if(!open){
+      setTimeout(() =>{
+        setFormData({
+          bankCode: '',
+          accountNumber: '',
+          accountName: '',
+          amount: ''
+      })
+      setShowSummary(false)
+    }, 500)
+    }
     if (open) {
       fetchPrices(); 
       const interval = setInterval(fetchPrices, 5000);
@@ -187,7 +199,7 @@ const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : us
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setShowSummary(true);
     // Validate form
     if (!formData.bankCode || !formData.accountNumber || !formData.accountName || !formData.amount) {
       toast.error("Please fill in all required fields");
@@ -200,14 +212,24 @@ const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : us
       return;
     }
 
-    setLoading(true);
-    const tokenAmount = await convertFiatToToken(amountValue, 'usd-coin');
+   
+    
+    
+  };
+const  handleConfirmTransfer = async () => {
+  setShowSummary(false);
+  setLoading(true);
+  onOpenChange(false);
+
+const amountValue = parseFloat(formData.amount);
+  const tokenAmount = await convertFiatToToken(amountValue, selectedToken.name);
     if (walletClient) {
-      await approveTransaction(tokenAmount, TOKEN_ADDRESSES['USDT'], publicClient, walletClient);
-      initiateTransaction(tokenAmount, TOKEN_ADDRESSES['USDT'], formData.accountNumber, amountValue, publicClient, walletClient);
+      await approveTransaction(tokenAmount, selectedToken.address, publicClient, walletClient);
+      initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, publicClient, walletClient);
     } else {
       toast.error("Wallet client is not available");
     }
+
     try {
       const response = await fetch('/api/initiate-transfer', {
         method: 'POST',
@@ -243,7 +265,26 @@ const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : us
     } finally {
       setLoading(false);
     }
-  };
+}
+  if(showSummary){
+    return(
+      <Dialog open={open} onOpenChange={onOpenChange}>  
+        <DialogContent  className="max-w-xl border-none bg-transparent p-0 ">
+          <TransferSummary
+          verifying = {verifying}
+          loading = {loading}
+          amount={parseFloat(formData.amount)}
+          recipient={formData.accountName}
+          accountNumber={formData.accountNumber}  
+          bankName={formData.bankCode}
+          onBack={() => setShowSummary(false)}
+          onConfirm={handleConfirmTransfer}
+          />
+
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <>
@@ -361,14 +402,10 @@ const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : us
 
                 <button
                   type="submit"
-                  disabled={loading || verifying}
-                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl ${
-                    loading || verifying
-                      ? "bg-purple-600/50"
-                      : "bg-gradient-to-r from-purple-600 to-purple-500 hover:opacity-90"
-                  } px-4 py-3 text-white transition-opacity`}
+                  className={`mt-6 flex w-full items-center bg-purple-600/50 justify-center gap-2 rounded-xl px-4 py-3 text-white transition-opacity`}
                 >
-                  {loading ? "Processing..." : "Transfer"}
+                  {/* {loading ? "Processing..." : "Transfer"} */}
+                  transfer
                 </button>
               </form>
             </div>

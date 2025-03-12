@@ -5,11 +5,15 @@ interface TransferSummaryProps {
   recipient: string
   accountNumber: string
   bankName: string
+  loading: boolean
+  verifying: boolean
   onBack: () => void
   onConfirm: () => void
 }
 
 export function TransferSummary({
+  verifying,
+  loading,
   amount,
   recipient,
   accountNumber,
@@ -74,8 +78,12 @@ export function TransferSummary({
 
       <button
         onClick={onConfirm}
-        className="mt-6 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 py-4 text-lg font-medium text-white transition-opacity hover:opacity-90"
-      >
+        className={`mt-6 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 py-4 text-lg  ${
+                    loading || verifying
+                      ? "bg-purple-600/50"
+                      : "bg-gradient-to-r from-purple-600 to-purple-500 hover:opacity-90"
+                  } font-medium text-white transition-opacity hover:opacity-90`}>
+        {loading ? "Processing..." : "Transfer"}
         Confirm Transfer
       </button>
     </div>
