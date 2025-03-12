@@ -1,8 +1,7 @@
 // src/utils/fetchTokenBalance.ts
 import { readContract } from "@wagmi/core";
 import { TOKEN_ADDRESSES } from "@/config";
-import { config } from "@/lib/wagmi"; // Import your Wagmi config
-
+import { config } from "@/lib/wagmi"; 
 const ERC20_ABI = [
   {
     constant: true,
@@ -20,11 +19,11 @@ export const fetchTokenBalance = async (token: "USDC" | "USDT", address: string)
       abi: ERC20_ABI,
       functionName: "balanceOf",
       args: [address as `0x${string}`], 
-    })) as bigint; // Cast the result to `bigint`
+    })) as bigint; 
 
-    return balance.toString(); // Convert BigInt to string
+    return balance.toString(); 
   } catch (error) {
     console.error(`Error fetching ${token} balance:`, error);
-    return "0"; // Return 0 if there's an error
+    return "0"; 
   }
 };

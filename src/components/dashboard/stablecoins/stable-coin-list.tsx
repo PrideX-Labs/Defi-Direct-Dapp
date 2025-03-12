@@ -44,10 +44,10 @@ export default function StableCoinList() {
       previousUsdcPriceRef.current = usdcPrice;
       previousUsdtPriceRef.current = usdtPrice;
 
-      console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
+      // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
     } catch (error) {
-      console.error("Failed to fetch token prices. Using previous prices.", error);
-      console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
+      // console.error("Failed to fetch token prices. Using previous prices.", error);
+      // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
     }
 
     // Format balances and calculate NGN balances
@@ -68,7 +68,7 @@ export default function StableCoinList() {
     previousUsdcBalanceRef.current = usdcBalanceFormatted;
     previousUsdtBalanceRef.current = usdtBalanceFormatted;
 
-    console.log("Setting stable coins with NGN balances:", { usdcNgnBalance, usdtNgnBalance }); // Debug log
+    // console.log("Setting stable coins with NGN balances:", { usdcNgnBalance, usdtNgnBalance }); // Debug log
 
     // Set stable coins with NGN balances
     setStableCoins([
@@ -93,7 +93,7 @@ export default function StableCoinList() {
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
-    console.log("Fetching stable coins...");
+   
     fetchStableCoins();
 
     // Set up an interval to fetch stable coins every 5 seconds
