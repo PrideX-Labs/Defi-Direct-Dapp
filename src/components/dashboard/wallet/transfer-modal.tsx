@@ -6,6 +6,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import toast, { Toaster } from 'react-hot-toast'
+import { initiateTransaction, approveTransaction } from "@/services/initiateTransaction"
+import { usePublicClient, useWalletClient } from "wagmi";
+import { convertFiatToToken } from "@/utils/convertFiatToToken"
+import { TOKEN_ADDRESSES } from "@/config"
 
 interface Bank {
   id: number;
@@ -36,6 +40,8 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     amount: ''
   });
   const [verifying, setVerifying] = useState(false);
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   // Fetch banks on component mount
   useEffect(() => {
@@ -145,6 +151,13 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
     }
 
     setLoading(true);
+    const tokenAmount = await convertFiatToToken(amountValue, 'usd-coin');
+    if (walletClient) {
+      await approveTransaction(tokenAmount, TOKEN_ADDRESSES['USDT'], publicClient, walletClient);
+      initiateTransaction(tokenAmount, TOKEN_ADDRESSES['USDT'], formData.accountNumber, amountValue, publicClient, walletClient);
+    } else {
+      toast.error("Wallet client is not available");
+    }
     try {
       const response = await fetch('/api/initiate-transfer', {
         method: 'POST',

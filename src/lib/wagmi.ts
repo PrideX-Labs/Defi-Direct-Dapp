@@ -1,10 +1,10 @@
 // src/lib/wagmi.ts
 import { createConfig, http } from "wagmi";
-import { mainnet } from "wagmi/chains";
+import { baseSepolia } from "wagmi/chains";
 
 export const config = createConfig({
-  chains: [mainnet], // Add other chains if needed
+  chains: [baseSepolia], // Add other chains if needed
   transports: {
-    [mainnet.id]: http(), // Use the default HTTP provider
+    [baseSepolia.id]: http(), // Use the default HTTP provider
   },
 });

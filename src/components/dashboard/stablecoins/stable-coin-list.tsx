@@ -19,6 +19,8 @@ export type StableCoin = {
 
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance } = useWallet();
+  console.log("USDC Balance in StableCoinList:", usdcBalance);
+  console.log("USDT Balance in StableCoinList:", usdtBalance);
   const [stableCoins, setStableCoins] = useState<StableCoin[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the interval ID
 
@@ -95,7 +97,7 @@ export default function StableCoinList() {
     fetchStableCoins();
 
     // Set up an interval to fetch stable coins every 5 seconds
-    intervalRef.current = setInterval(fetchStableCoins, 5000);
+    intervalRef.current = setInterval(fetchStableCoins, 300000);
 
     // Clean up the interval when the component unmounts
     return () => {
@@ -103,7 +105,7 @@ export default function StableCoinList() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [usdcBalance, usdtBalance, fetchStableCoins]); // Re-run if USDC or USDT balances change
+  }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
 
   return (
     <div className="w-full h-full rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-6">

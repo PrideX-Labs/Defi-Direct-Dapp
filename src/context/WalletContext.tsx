@@ -71,8 +71,9 @@ useEffect(() => {
   const fetchBalances = async () => {
     console.log("Fetching balances...");
     const usdcBalance = await fetchTokenBalance("USDC", address);
+    console.log("usdcBalance:", usdcBalance);
     const usdtBalance = await fetchTokenBalance("USDT", address);
-
+    console.log("usdtBalance:", usdtBalance);
     setUsdcBalance(usdcBalance);
     setUsdtBalance(usdtBalance);
 
@@ -84,7 +85,7 @@ useEffect(() => {
   fetchBalances();
 
   // Set up an interval to fetch balances every 5 seconds
-  const intervalId = setInterval(fetchBalances, 5000);
+  const intervalId = setInterval(fetchBalances, 5000000);
 
   // Clean up the interval when the component unmounts or dependencies change
   return () => clearInterval(intervalId);
