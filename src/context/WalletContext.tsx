@@ -84,7 +84,7 @@ useEffect(() => {
   fetchBalances();
 
   // Set up an interval to fetch balances every 5 seconds
-  const intervalId = setInterval(fetchBalances, 5000);
+  const intervalId = setInterval(fetchBalances, 400000);
 
   // Clean up the interval when the component unmounts or dependencies change
   return () => clearInterval(intervalId);
