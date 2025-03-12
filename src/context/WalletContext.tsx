@@ -63,7 +63,7 @@ useEffect(() => {
   }
 
   const walletId = connector.id.toLowerCase();
-  // console.log("Connector ID:", walletId); // Log the connector ID
+  console.log("Connector ID:", walletId); // Log the connector ID
   setWalletIcon(walletIcons[walletId] || null); // Set wallet icon or fallback
   setWalletName(connector.name || null);
 
