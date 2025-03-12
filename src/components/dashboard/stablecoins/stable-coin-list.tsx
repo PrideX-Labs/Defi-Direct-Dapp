@@ -52,14 +52,13 @@ export default function StableCoinList() {
 
     // Format balances and calculate NGN balances
     const usdcBalanceFormatted = formatBalance(usdcBalance);
-    const usdtBalanceFormatted = formatBalance(usdtBalance);
-
+    const usdtBalanceFormatted = usdtBalance
     const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
 
-    const usdtNgnBalance = (parseFloat(usdtBalanceFormatted) * usdtPrice).toLocaleString(undefined, {
+    const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice)/ 10e6).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
@@ -84,7 +83,7 @@ export default function StableCoinList() {
         id: "2",
         symbol: "USDT",
         name: "USDT $1",
-        balance: usdtBalanceFormatted,
+        balance: formatBalance(usdtBalanceFormatted),
         ngnBalance: `₦${usdtNgnBalance}`, // Add NGN balance
         icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
       },
@@ -97,7 +96,7 @@ export default function StableCoinList() {
     fetchStableCoins();
 
     // Set up an interval to fetch stable coins every 5 seconds
-    intervalRef.current = setInterval(fetchStableCoins, 4000000);
+    intervalRef.current = setInterval(fetchStableCoins, 400000);
 
     // Clean up the interval when the component unmounts
     return () => {

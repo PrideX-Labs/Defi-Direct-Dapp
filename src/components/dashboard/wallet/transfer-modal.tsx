@@ -13,6 +13,7 @@ import { useWallet } from "@/context/WalletContext"
 import { formatBalance } from "@/utils/formatBalance"
 import { fetchTokenPrice } from "@/utils/fetchTokenprice"
 import { TransferSummary } from "./transfer-summary"
+import { type PublicClient, type WalletClient } from 'viem';
 
 const tokens = [
   { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png", address: TOKEN_ADDRESSES['USDC'] },
