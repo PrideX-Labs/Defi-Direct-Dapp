@@ -46,7 +46,7 @@ export default function StableCoinList() {
 
       // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
     } catch (error) {
-      // console.error("Failed to fetch token prices. Using previous prices.", error);
+      console.error("Failed to fetch token prices. Using previous prices.", error);
       // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
     }
 
