@@ -17,6 +17,8 @@ export type StableCoin = {
   icon: string;
 };
 
+
+
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance } = useWallet();
   console.log("USDC Balance in StableCoinList:", usdcBalance);
@@ -46,7 +48,7 @@ export default function StableCoinList() {
 
       // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
     } catch (error) {
-      // console.error("Failed to fetch token prices. Using previous prices.", error);
+      console.error("Failed to fetch token prices. Using previous prices.", error);
       // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
     }
 
@@ -108,7 +110,7 @@ export default function StableCoinList() {
   }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
 
   return (
-    <div className="w-full h-full rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-6">
+    <div className="w-full h-full rounded-3xl  p-6">
       <h2 className="text-2xl font-semibold text-white">Your Stable coins</h2>
       <div className="mt-6">
         {stableCoins.map((coin, index) => (

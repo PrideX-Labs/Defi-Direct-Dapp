@@ -1,4 +1,5 @@
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '@/paydirect'; 
+import { type PublicClient, type WalletClient } from 'viem';
 
 const TOKEN_CONTRACT_ABI = [
     {
@@ -18,10 +19,8 @@ const TOKEN_CONTRACT_ABI = [
 export const approveTransaction = async (
     amount: number,
     tokenAddress: string,
-    publicClient: {
-        waitForTransactionReceipt: any; transport: { url: string } 
-}, // Wagmi's publicClient
-    walletClient: { account: { address: string }, writeContract: any }
+    publicClient: PublicClient, // Wagmi's publicClient
+    walletClient: WalletClient
   ) => {
     if (!walletClient) {
         console.error("Wallet client is undefined. Connect wallet first.");
@@ -35,17 +34,18 @@ export const approveTransaction = async (
       try {
           // Use walletClient to write to the contract
           const txHash = await walletClient.writeContract({
-              address: tokenAddress,
-              abi: TOKEN_CONTRACT_ABI,
-              functionName: 'approve',
-              args: [CONTRACT_ADDRESS, amount],
-              account: walletClient.account.address,
+            address: tokenAddress as `0x${string}`,
+            abi: TOKEN_CONTRACT_ABI,
+            functionName: 'approve',
+            args: [CONTRACT_ADDRESS, BigInt(amount)],
+            account: walletClient.account!,
+            chain: publicClient.chain,
           });
       
           console.log("Transaction hash:", txHash);
       
           // Wait for the transaction to be mined
-          const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          const receipt = await publicClient?.waitForTransactionReceipt?({ hash: txHash }): undefined;
           console.log("Transaction mined:", receipt);
       
           return receipt;
@@ -59,10 +59,8 @@ export const initiateTransaction = async (
     tokenAddress: string,
     fiatBankAccountNumber: string,
     fiatAmount: number,
-    publicClient: {
-        waitForTransactionReceipt: any; transport: { url: string } 
-}, // Wagmi's publicClient
-    walletClient: { account: { address: string }, writeContract: any }
+    publicClient: PublicClient, // Wagmi's publicClient
+    walletClient: WalletClient
   ) => {
     if (!walletClient) {
       console.error("Wallet client is undefined. Connect wallet first.");
@@ -76,15 +74,16 @@ export const initiateTransaction = async (
           address: CONTRACT_ADDRESS,
           abi: CONTRACT_ABI,
           functionName: 'initiateFiatTransaction',
-          args: [tokenAddress, amount, Number(fiatBankAccountNumber), fiatAmount],
-          account: walletClient.account.address,
+          args: [tokenAddress as `0x${string}`, BigInt(amount), BigInt(fiatBankAccountNumber), BigInt(fiatAmount)],
+          account: walletClient.account!,
+          chain: publicClient.chain
         });
         console.log("Account number:", Number(fiatBankAccountNumber));
         console.log("amount:", amount);
         console.log("Transaction hash:", txHash);
     
         // Wait for the transaction to be mined
-        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash: txHash });
         console.log("Transaction mined:", receipt);
     
         return receipt;
