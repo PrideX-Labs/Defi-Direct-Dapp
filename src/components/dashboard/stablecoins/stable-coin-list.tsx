@@ -45,10 +45,10 @@ export default function StableCoinList() {
       previousUsdtPriceRef.current = usdtPrice;
 
       // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
-    } catch (error) {
-      // console.error("Failed to fetch token prices. Using previous prices.", error);
-      // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
-    }
+    // } catch (error) {
+    //   console.error("Failed to fetch token prices. Using previous prices.", error);
+    //   console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
+    // }
 
     // Format balances and calculate NGN balances
     const usdcBalanceFormatted = formatBalance(usdcBalance);
@@ -89,7 +89,10 @@ export default function StableCoinList() {
         icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
       },
     ]);
-  };
+  } catch (error) {
+    console.error("Failed to fetch stable coins. Using previous data.", error);
+  }
+}
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
