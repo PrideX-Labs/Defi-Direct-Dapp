@@ -31,7 +31,7 @@ interface TransferModalProps {
   balance: number
 }
 
-export function TransferModal({ open, onOpenChange, balance }: TransferModalProps) {
+export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -219,43 +219,47 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
   const handleConfirmTransfer = async () => {
     setLoading(true); // Set loading state while processing
 
+    const price = selectedToken.name === "USDC" ? usdcPrice : usdtPrice;
+    console.log("Withdrawal price:", price);
     const amountValue = parseFloat(formData.amount);
-    const tokenAmount = await convertFiatToToken(amountValue, selectedToken.name);
+    const tokenAmount = await convertFiatToToken(amountValue, selectedToken.name, price);
 
     try {
-      if (walletClient) {
+      if (walletClient && publicClient) {
         // Step 1: Approve the transaction (user signs for approval)
         await approveTransaction(tokenAmount, selectedToken.address, publicClient, walletClient);
 
         // Step 2: Initiate the transaction (user signs to initiate the transfer)
-        await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, publicClient, walletClient);
+        const receipt = await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, publicClient, walletClient);
 
         // Step 3: Call the backend API to complete the transfer
-        const response = await fetch('/api/initiate-transfer', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            bankCode: formData.bankCode,
-            accountNumber: formData.accountNumber,
-            accountName: formData.accountName,
-            amount: amountValue,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          // Show success toast (transfer is complete)
-          toast.success(`Your transfer of ₦${amountValue.toLocaleString()} is complete!`);
-
-          // Reset form and close modal
-          resetForm();
-          onOpenChange(false);
-        } else {
-          toast.error(result.message || "Could not complete your transfer request");
+        if (receipt?.status === 'success') {
+          const response = await fetch('/api/initiate-transfer', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bankCode: formData.bankCode,
+              accountNumber: formData.accountNumber,
+              accountName: formData.accountName,
+              amount: amountValue,
+            }),
+          });
+          const result = await response.json();
+          if (result.success) {
+            // Show success toast (transfer is complete)
+            toast.success(`Your transfer of ₦${amountValue.toLocaleString()} is complete!`);
+  
+            // Reset form and close modal
+            resetForm();
+            onOpenChange(false);
+          } else {
+            toast.error(result.message || "Could not complete your transfer request");
+          }
         }
+
+
       } else {
         toast.error("Wallet client is not available");
       }
@@ -280,7 +284,9 @@ export function TransferModal({ open, onOpenChange, balance }: TransferModalProp
             recipient={formData.accountName}
             accountNumber={formData.accountNumber}  
             bankName={formData.bankCode}
-            onBack={() => setShowSummary(false)}
+            onBack={() => {setShowSummary(false)
+              setLoading(false);
+            }}
             onConfirm={handleConfirmTransfer}
           />
         </DialogContent>
