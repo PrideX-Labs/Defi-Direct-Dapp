@@ -91,10 +91,8 @@ export default function StableCoinList() {
         icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
       },
     ]);
-  } catch (error) {
-    console.error("Failed to fetch stable coins. Using previous data.", error);
   }
-}
+
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
