@@ -33,7 +33,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Function to update total balance in NGN
   const updateTotalNgnBalance = async (usdcBalance: string, usdtBalance: string) => {
-    console.log("Updating total NGN balance...");
+    // console.log("Updating total NGN balance...");
     const usdcPrice = await fetchTokenPrice("usd-coin"); // Fetch USDC price in NGN
     const usdtPrice = await fetchTokenPrice("tether"); // Fetch USDT price in NGN
 
@@ -43,17 +43,17 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 console.log("usdc NGN balance:", usdc);
     const totalUp = usdc * usdcPrice + usdt * usdtPrice; // Calculate total balance in NGN
     const total = totalUp/10e5
-    console.log("Total NGN balance:", total);
+    // console.log("Total NGN balance:", total);
     setTotalNgnBalance(total);
   };
 
   // src/context/WalletContext.tsx
 useEffect(() => {
-  console.log("useEffect triggered");
+  // console.log("useEffect triggered");
   setIsAuthenticated(isConnected);
 
   if (!isConnected || !connector || !address) {
-    console.log("Wallet not connected or address not available");
+    // console.log("Wallet not connected or address not available");
     setWalletIcon(null);
     setWalletName(null);
     setUsdcBalance("0");
@@ -64,12 +64,12 @@ useEffect(() => {
 
   const walletId = connector.id.toLowerCase();
   console.log("Connector ID:", walletId); // Log the connector ID
-  setWalletIcon(walletIcons[walletId] || 'https://avatars.githubusercontent.com/u/1?v=4'); // Set wallet icon or fallback
+  setWalletIcon(walletIcons[walletId] || null); // Set wallet icon or fallback
   setWalletName(connector.name || null);
 
   // Function to fetch balances
   const fetchBalances = async () => {
-    console.log("Fetching balances...");
+    // console.log("Fetching balances...");
     const usdcBalance = await fetchTokenBalance("USDC", address);
     const usdtBalance = await fetchTokenBalance("USDT", address);
 
@@ -84,7 +84,7 @@ useEffect(() => {
   fetchBalances();
 
   // Set up an interval to fetch balances every 5 seconds
-  const intervalId = setInterval(fetchBalances, 5000);
+  const intervalId = setInterval(fetchBalances, 400000);
 
   // Clean up the interval when the component unmounts or dependencies change
   return () => clearInterval(intervalId);

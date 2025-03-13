@@ -1,5 +1,5 @@
 // src/config.js
-export const CONTRACT_ADDRESS = "0x0D16Ec2af167bdf8B86adBf3258D7974501e7B74";
+export const CONTRACT_ADDRESS = "0xFF5542a9126Ce56b15247D7403f3E1A16367b88C";
 
 export const CONTRACT_ABI = [
   {
@@ -8,6 +8,21 @@ export const CONTRACT_ABI = [
         "internalType": "uint256",
         "name": "_spreadFeePercentage",
         "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_transactionManager",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeReceiver",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_vaultAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -99,37 +114,6 @@ export const CONTRACT_ABI = [
       }
     ],
     "name": "Paused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "maxAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "expiryTime",
-        "type": "uint256"
-      }
-    ],
-    "name": "PermissionGranted",
     "type": "event"
   },
   {
@@ -263,19 +247,6 @@ export const CONTRACT_ABI = [
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "txId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "claimExpiredLock",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -311,26 +282,61 @@ export const CONTRACT_ABI = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getFeeReceiver",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTokenManager",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "token",
+        "name": "user",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "maxAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "duration",
-        "type": "uint256"
       }
     ],
-    "name": "grantPermission",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "getTransactionIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getVaultAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -347,7 +353,12 @@ export const CONTRACT_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "lockDuration",
+        "name": "_fiatBankAccountNumber",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_fiatAmount",
         "type": "uint256"
       }
     ],
@@ -398,6 +409,19 @@ export const CONTRACT_ABI = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "txId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "refund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "token",
         "type": "address"
@@ -411,6 +435,45 @@ export const CONTRACT_ABI = [
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_feeReceiver",
+        "type": "address"
+      }
+    ],
+    "name": "setFeeReceiver",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_transactionManager",
+        "type": "address"
+      }
+    ],
+    "name": "setTokenManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vaultAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setVaultAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -479,12 +542,22 @@ export const CONTRACT_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "lockTimestamp",
+        "name": "transactionFee",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "unlockTimestamp",
+        "name": "transactionTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fiatBankAccountNumber",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fiatAmount",
         "type": "uint256"
       },
       {
@@ -542,48 +615,20 @@ export const CONTRACT_ABI = [
         "type": "address"
       },
       {
-        "internalType": "address",
+        "internalType": "uint256",
         "name": "",
-        "type": "address"
+        "type": "uint256"
       }
     ],
-    "name": "userPermissions",
+    "name": "userTransactionIds",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "maxAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "expiryTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdrawFees",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]as const;;

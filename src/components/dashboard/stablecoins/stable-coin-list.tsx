@@ -21,6 +21,8 @@ export type StableCoin = {
 
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance } = useWallet();
+  console.log("USDC Balance in StableCoinList:", usdcBalance);
+  console.log("USDT Balance in StableCoinList:", usdtBalance);
   const [stableCoins, setStableCoins] = useState<StableCoin[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the interval ID
 
@@ -44,10 +46,10 @@ export default function StableCoinList() {
       previousUsdcPriceRef.current = usdcPrice;
       previousUsdtPriceRef.current = usdtPrice;
 
-      console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
+      // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
     } catch (error) {
       console.error("Failed to fetch token prices. Using previous prices.", error);
-      console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
+      // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
     }
 
     // Format balances and calculate NGN balances
@@ -68,7 +70,7 @@ export default function StableCoinList() {
     previousUsdcBalanceRef.current = usdcBalanceFormatted;
     previousUsdtBalanceRef.current = usdtBalanceFormatted;
 
-    console.log("Setting stable coins with NGN balances:", { usdcNgnBalance, usdtNgnBalance }); // Debug log
+    // console.log("Setting stable coins with NGN balances:", { usdcNgnBalance, usdtNgnBalance }); // Debug log
 
     // Set stable coins with NGN balances
     setStableCoins([
@@ -93,11 +95,11 @@ export default function StableCoinList() {
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
-    console.log("Fetching stable coins...");
+   
     fetchStableCoins();
 
     // Set up an interval to fetch stable coins every 5 seconds
-    intervalRef.current = setInterval(fetchStableCoins, 5000);
+    intervalRef.current = setInterval(fetchStableCoins, 4000000);
 
     // Clean up the interval when the component unmounts
     return () => {
@@ -105,7 +107,7 @@ export default function StableCoinList() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [usdcBalance, usdtBalance, fetchStableCoins]); // Re-run if USDC or USDT balances change
+  }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
 
   return (
     <div className="w-full h-full rounded-3xl  p-6">

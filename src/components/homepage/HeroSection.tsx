@@ -1,5 +1,4 @@
 'use client';
-
 import Image from 'next/image';
 import React, { useEffect } from 'react';
 import Logo from '../Logo';
@@ -39,8 +38,7 @@ function HeroSection() {
       
       </div>
     <div className="mx-auto max-w-4xl">
-
-      <div className=' flex flex-col items-center text-center '>
+      <div className='flex flex-col items-center text-center'>
         {/* Floating crypto icons */}
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[107px] left-[210px] animate-pulse hidden md:flex ">
@@ -114,7 +112,7 @@ function HeroSection() {
         </p> 
         
         <Link href="#WaitList">
-        <button className='py-2 md:px-6 px-4 bg-[#7b40e3] rounded-lg mt-8 animate-bounce font-bold text-2xl'>Join Waitlist</button>
+        <button className='py-2 md:px-6 px-4 bg-[#7b40e3] rounded-lg mt-8 animate-bounce font-bold md:text-2xl text-md'>Join Waitlist</button>
         </Link>   
       </div>
     </div>
