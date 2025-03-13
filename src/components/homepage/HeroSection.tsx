@@ -10,7 +10,7 @@ import Link from 'next/link';
 function HeroSection() {
   const { connectedAddress, isAuthenticated, disconnectWallet } = useWallet(); // Use isAuthenticated from useWallet
   const router = useRouter();
-
+  console.log(process.env.NEXT_PUBLIC_JSON_RPC_SERVER_URL)
   
   
   // Redirect to dashboard after successful connection
