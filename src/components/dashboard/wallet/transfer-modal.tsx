@@ -63,7 +63,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   };
 
   const usdcBalanceFormatted = formatBalance(usdcBalance);
-  const usdtBalanceFormatted = formatBalance(usdtBalance);
+  const usdtBalanceFormatted = usdtBalance;
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -131,7 +131,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     maximumFractionDigits: 2,
   });
 
-  const usdtNgnBalance = (parseFloat(usdtBalanceFormatted) * usdtPrice).toLocaleString(undefined, {
+  const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice)/10e5).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

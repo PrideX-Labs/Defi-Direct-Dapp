@@ -58,7 +58,7 @@ export default function StableCoinList() {
       maximumFractionDigits: 2,
     });
 
-    const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice)/ 10e6).toLocaleString(undefined, {
+    const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice)/ 10e5).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
