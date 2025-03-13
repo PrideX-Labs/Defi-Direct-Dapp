@@ -4,9 +4,11 @@ import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/paydirect';
 
 dotenv.config();
 
-const privateKey = process.env.REACT_APP_TRANSACTION_MANAGER_PRIVATE_KEY;
+const privateKey = process.env.NEXT_PUBLIC_TRANSACTION_MANAGER_PRIVATE_KEY;
 
-const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_JSON_RPC_SERVER_URL);
+const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_JSON_RPC_SERVER_URL);
+
+console.log("PROVIDER",provider)
 
 // Create a signer using your private key
 
