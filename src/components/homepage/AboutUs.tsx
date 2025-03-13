@@ -23,10 +23,10 @@ const ProductProcess = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center py-16 text-white">
-      <h1 className="text-4xl font-bold text-center mb-10">How It Works</h1>
+    <div className="flex flex-col items-center py-16 text-white my-10 mx-4">
+      <h1 className="md:text-5xl text-3xl font-bold text-center md:mb-20 mb-8">How It Works</h1>
 
-      <div className="flex flex-wrap justify-center items-center w-full max-w-5xl space-y-14 md:space-y-0 md:space-x-10">
+      <div className="flex flex-wrap justify-center items-center w-full max-w-5xl space-y-20 md:space-y-0 md:space-x-10 space-x-10 mb-8 mr-8">
         {steps.map((step, index) => (
           <motion.div
             key={step.id}

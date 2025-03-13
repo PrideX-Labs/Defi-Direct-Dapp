@@ -16,3 +16,4 @@ export const fetchTokenPrice = async (tokenId: string) => {
     throw error; // Re-throw the error to handle it in the calling function
   }
 };
+
