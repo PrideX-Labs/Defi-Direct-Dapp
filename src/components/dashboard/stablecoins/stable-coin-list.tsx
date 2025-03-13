@@ -17,6 +17,8 @@ export type StableCoin = {
   icon: string;
 };
 
+
+
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance } = useWallet();
   const [stableCoins, setStableCoins] = useState<StableCoin[]>([]);
@@ -103,10 +105,10 @@ export default function StableCoinList() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
+  }, [usdcBalance, usdtBalance, fetchStableCoins]); // Re-run if USDC or USDT balances change
 
   return (
-    <div className="w-full h-full rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-6">
+    <div className="w-full h-full rounded-3xl  p-6">
       <h2 className="text-2xl font-semibold text-white">Your Stable coins</h2>
       <div className="mt-6">
         {stableCoins.map((coin, index) => (

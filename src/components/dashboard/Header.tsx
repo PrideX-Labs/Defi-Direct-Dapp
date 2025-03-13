@@ -5,7 +5,7 @@ import React from 'react';
 import { Avatar, Dropdown, Menu } from 'antd';
 import { BellOutlined, DownOutlined, MenuOutlined } from '@ant-design/icons';
 import { usePathname } from 'next/navigation';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useWallet } from '@/context/WalletContext';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -13,9 +13,9 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 const Header: React.FC<{
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
+}> = ({ setIsMobileMenuOpen }) => {
   const pathname = usePathname();
-  const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
+  const { connectedAddress, disconnectWallet, walletIcon } = useWallet();
 
   const getPageTitle = () => {
     if (pathname?.includes('transaction')) return 'Transactions';
