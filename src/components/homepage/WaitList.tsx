@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import axios from "axios";
+import { AxiosError } from "axios";
 
 function WaitList() {
   const [email, setEmail] = useState("");
@@ -38,9 +39,11 @@ function WaitList() {
       } else {
         setMessage("Failed to save email. Please try again.");
       }
-    } catch (error: any) {
-      if (error.response) {
-        setMessage(error.response.data?.message || "Failed to save email. Please try again.");
+    } catch (error) {
+      if (error) {
+        let message = 'Unknown Error'
+	      if (error instanceof AxiosError) message = JSON.stringify(error)
+        setMessage(message || "Failed to save email. Please try again.");
       } else {
         setMessage("Network error. Please check your connection.");
       }

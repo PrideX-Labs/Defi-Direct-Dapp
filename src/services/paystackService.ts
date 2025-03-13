@@ -25,8 +25,18 @@ export const createTransferRecipient = async (
 ): Promise<TransferRecipientResponse> => {
   const paystackAxios = createPaystackInstance();
   
+  // try {
+  //   const response = await paystackAxios.post<TransferRecipientResponse>(
+  //     '/transferrecipient', 
+  //     recipientData
+  //   );
+  //   return response.data;
+  // } catch (error) {
+  //   console.error('Error creating transfer recipient:', error);
+  //   throw error;
+  // }
   try {
-    const response = await paystackAxios.post<TransferRecipientResponse>(
+    const response = await paystackAxios.post(
       '/transferrecipient', 
       recipientData
     );
@@ -42,8 +52,19 @@ export const initiateTransfer = async (
 ): Promise<TransferResponse> => {
   const paystackAxios = createPaystackInstance();
   
+  // try {
+  //   const response = await paystackAxios.post<TransferResponse>(
+  //     '/transfer', 
+  //     transferData
+  //   );
+  //   return response.data;
+  // } catch (error) {
+  //   console.error('Error initiating transfer:', error);
+  //   throw error;
+  // }
+
   try {
-    const response = await paystackAxios.post<TransferResponse>(
+    const response = await paystackAxios.post(
       '/transfer', 
       transferData
     );

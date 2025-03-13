@@ -91,7 +91,8 @@ export default function StableCoinList() {
         icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
       },
     ]);
-  };
+  }
+
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
