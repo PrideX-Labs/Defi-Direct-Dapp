@@ -1,5 +1,10 @@
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '@/paydirect'; 
+import { ethers } from 'ethers';
 import { type PublicClient, type WalletClient } from 'viem';
+import { TransactionReceipt as ViemTransactionReceipt } from 'viem';
+import { TransactionReceipt as EthersTransactionReceipt } from 'ethers';
+
+type CombinedTransactionReceipt = ViemTransactionReceipt | EthersTransactionReceipt;
 
 const TOKEN_CONTRACT_ABI = [
     {
@@ -92,3 +97,32 @@ export const initiateTransaction = async (
         throw error; // Re-throw the error for handling in the calling function
       }
   };
+  const contractInterface = new ethers.Interface(CONTRACT_ABI);
+
+  export async function parseTransactionReceipt(receipt: CombinedTransactionReceipt) {
+    for (const log of receipt.logs) {
+      try {
+        // Decode the log
+        const parsedLog = contractInterface.parseLog(log);
+  
+        // Check if the log is the TransactionInitiated event
+        if (parsedLog && parsedLog.name === "TransactionInitiated") {
+          const txId = parsedLog.args.txId;
+          const user = parsedLog.args.user;
+          const amount = parsedLog.args.amount;
+  
+          console.log("Transaction ID:", txId);
+          console.log("User:", user);
+          console.log("Amount:", amount.toString());
+  
+          return { txId, user, amount };
+        }
+      } catch {
+        // Skip logs that cannot be parsed (e.g., logs from other contracts
+        continue;
+      }
+    }
+  
+    console.log("TransactionInitiated event not found in logs");
+    return null;
+  }
