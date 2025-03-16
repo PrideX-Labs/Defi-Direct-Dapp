@@ -65,15 +65,18 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     try {
       const [usdcBalance, usdtBalance] = await Promise.all([
-        fetchTokenBalance("USDC", address),
+        fetchTokenBalance("USDC", address),  
         fetchTokenBalance("USDT", address),
       ]);
 
       setUsdcBalance(usdcBalance);
       setUsdtBalance(usdtBalance);
 
-      // Update total NGN balance
+      // Update total NGN balance\
+      console.log("USDC Balance:", usdcBalance)
       const usdc = parseFloat(usdcBalance) || 0;
+      console.log("USDC:", usdc)
+      console.log("USDT Balance:", usdtBalance)
       const usdt = parseFloat(usdtBalance) || 0;
       const totalUp = usdc * usdcPrice + usdt * usdtPrice; // Calculate total balance in NGN
       const total = totalUp / 10e5;

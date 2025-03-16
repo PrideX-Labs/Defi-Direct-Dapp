@@ -24,8 +24,6 @@ export const retrieveTransactions = async (
       args: [userAddress], // Pass the user's address as an argument
     });
 
-    console.log("User transactions:", transactions);
-
     // Return the transactions directly (no need to wait for receipts)
     return transactions.toReversed();
   } catch (error) {
