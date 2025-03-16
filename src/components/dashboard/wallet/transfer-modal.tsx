@@ -51,11 +51,11 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   const { data: walletClient } = useWalletClient();
 
   // Format balances
-  const usdcBalanceFormatted = formatBalance(usdcBalance);
+  const usdcBalanceFormatted = usdcBalance;
   const usdtBalanceFormatted = usdtBalance;
 
   // Calculate NGN balances
-  const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
+  const usdcNgnBalance = ((parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
