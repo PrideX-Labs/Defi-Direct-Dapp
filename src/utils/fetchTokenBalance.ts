@@ -19,10 +19,7 @@ export const fetchTokenBalance = async (token: "USDC" | "USDT", address: string)
       abi: ERC20_ABI,
       functionName: "balanceOf",
       args: [address as `0x${string}`], 
-    })) as bigint;
-    if (token === "USDC") {
-      return (balance / BigInt(10 ** 18)).toString();
-    }
+    })) as bigint; 
 
     return balance.toString(); 
   } catch (error) {
