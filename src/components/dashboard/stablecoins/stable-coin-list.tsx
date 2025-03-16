@@ -17,6 +17,8 @@ export type StableCoin = {
   icon: string;
 };
 
+
+
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance } = useWallet();
   console.log("USDC Balance in StableCoinList:", usdcBalance);
@@ -88,7 +90,8 @@ export default function StableCoinList() {
         icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
       },
     ]);
-  };
+  }
+
 
   useEffect(() => {
     // Fetch stable coins immediately when the component mounts or when balances change
@@ -107,7 +110,7 @@ export default function StableCoinList() {
   }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
 
   return (
-    <div className="w-full h-full rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-6">
+    <div className="w-full h-full rounded-3xl  p-6">
       <h2 className="text-2xl font-semibold text-white">Your Stable coins</h2>
       <div className="mt-6">
         {stableCoins.map((coin, index) => (

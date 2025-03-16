@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useEffect, useState } from "react"
 import toast, { Toaster } from 'react-hot-toast'
-import { initiateTransaction, approveTransaction } from "@/services/initiateTransaction"
+import { initiateTransaction, approveTransaction, parseTransactionReceipt } from "@/services/initiateTransaction"
 import { usePublicClient, useWalletClient } from "wagmi"
 import { convertFiatToToken } from "@/utils/convertFiatToToken"
 import { TOKEN_ADDRESSES } from "@/config"
@@ -14,6 +14,7 @@ import { formatBalance } from "@/utils/formatBalance"
 import { fetchTokenPrice } from "@/utils/fetchTokenprice"
 import { TransferSummary } from "./transfer-summary"
 import { type PublicClient, type WalletClient } from 'viem';
+import { completeTransaction } from "@/services/completeTransaction"
 
 const tokens = [
   { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png", address: TOKEN_ADDRESSES['USDC'] },
@@ -234,31 +235,48 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
         const receipt = await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, publicClient, walletClient);
 
         // Step 3: Call the backend API to complete the transfer
-        if (receipt?.status === 'success') {
-          const response = await fetch('/api/initiate-transfer', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              bankCode: formData.bankCode,
-              accountNumber: formData.accountNumber,
-              accountName: formData.accountName,
-              amount: amountValue,
-            }),
-          });
-          const result = await response.json();
-          if (result.success) {
-            // Show success toast (transfer is complete)
-            toast.success(`Your transfer of ₦${amountValue.toLocaleString()} is complete!`);
-  
-            // Reset form and close modal
-            resetForm();
-            onOpenChange(false);
-          } else {
-            toast.error(result.message || "Could not complete your transfer request");
+        if (receipt && receipt.status === 'success') {
+          try {
+            // Parse the transaction receipt to get event data
+            const parsedReceipt = await parseTransactionReceipt(receipt);
+            if (parsedReceipt) {
+        
+              // Send the transfer request to your backend API
+              const response = await fetch('/api/initiate-transfer', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  bankCode: formData.bankCode,
+                  accountNumber: formData.accountNumber,
+                  accountName: formData.accountName,
+                  amount: amountValue, // Use the amount from the event logs
+                }),
+              });
+          
+              const result = await response.json();
+          
+              if (result.success) {
+                // Mark the transaction as complete in the smart contract
+                await completeTransaction(parsedReceipt.txId, parsedReceipt.amount);
+          
+                // Show success toast (transfer is complete)
+                toast.success(`Your transfer of ₦${formData.amount.toString()} is complete!`);
+          
+                // Reset form and close modal
+                resetForm();
+                onOpenChange(false);
+              } else {
+                toast.error(result.message || "Could not complete your transfer request");
+              }
+            }
           }
-        }
+            catch (error) {
+            console.error("Error processing transaction:", error);
+            toast.error("An error occurred while processing your transaction");
+          }
+          } 
 
 
       } else {

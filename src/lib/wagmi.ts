@@ -8,4 +8,6 @@ export const config = createConfig({
   transports: {
     [baseSepolia.id]: http(), // Use the default HTTP provider
   },
+  multiInjectedProviderDiscovery: true
+  
 });
