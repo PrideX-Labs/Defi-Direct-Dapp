@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { ChevronDown } from "lucide-react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { useEffect, useState } from "react"
-import toast, { Toaster } from 'react-hot-toast'
-import { initiateTransaction, approveTransaction, parseTransactionReceipt } from "@/services/initiateTransaction"
-import { usePublicClient, useWalletClient } from "wagmi"
-import { convertFiatToToken } from "@/utils/convertFiatToToken"
-import { TOKEN_ADDRESSES } from "@/config"
-import { useWallet } from "@/context/WalletContext"
-import { formatBalance } from "@/utils/formatBalance"
-import { fetchTokenPrice } from "@/utils/fetchTokenprice"
-import { TransferSummary } from "./transfer-summary"
-import { completeTransaction } from "@/services/completeTransaction"
+import type React from "react";
+import { ChevronDown } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import toast, { Toaster } from 'react-hot-toast';
+import { initiateTransaction, approveTransaction, parseTransactionReceipt } from "@/services/initiateTransaction";
+import { usePublicClient, useWalletClient } from "wagmi";
+import { convertFiatToToken } from "@/utils/convertFiatToToken";
+import { TOKEN_ADDRESSES } from "@/config";
+import { useWallet } from "@/context/WalletContext";
+import { formatBalance } from "@/utils/formatBalance";
+import { TransferSummary } from "./transfer-summary";
+import { type PublicClient, type WalletClient } from 'viem';
+import { completeTransaction } from "@/services/completeTransaction";
 import { Form } from "antd"
 
 const tokens = [
@@ -28,9 +28,8 @@ interface Bank {
 }
 
 interface TransferModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  balance: number
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function TransferModal({ open, onOpenChange }: TransferModalProps) {
@@ -47,27 +46,26 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   });
   const [verifying, setVerifying] = useState(false);
 
-  const { usdcBalance, usdtBalance } = useWallet();
-  const [usdcPrice, setUsdcPrice] = useState<number>(0);
-  const [usdtPrice, setUsdtPrice] = useState<number>(0);
-
-  const fetchPrices = async () => {
-    try {
-      const usdc = await fetchTokenPrice("usd-coin");
-      const usdt = await fetchTokenPrice("tether");
-
-      if (usdc) setUsdcPrice(usdc);
-      if (usdt) setUsdtPrice(usdt);
-    } catch (error) {
-      console.error("Failed to fetch token prices. Retaining previous prices.", error);
-    }
-  };
-
-  const usdcBalanceFormatted = formatBalance(usdcBalance);
-  const usdtBalanceFormatted = formatBalance(usdtBalance);
-
+  const { usdcBalance, usdtBalance, usdcPrice, usdtPrice } = useWallet();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
+
+  // Format balances
+  const usdcBalanceFormatted = formatBalance(usdcBalance);
+  const usdtBalanceFormatted = usdtBalance;
+
+  // Calculate NGN balances
+  const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : usdtNgnBalance;
 
   // Reset form when modal is closed
   const resetForm = () => {
@@ -87,6 +85,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     return bank ? bank.name : '';
   };
 
+  // Fetch banks when modal opens
   useEffect(() => {
     let isMounted = true;
 
@@ -116,59 +115,33 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     if (open) {
       fetchBanks();
     }
-    if (open) {
-      fetchPrices(); 
-      const interval = setInterval(fetchPrices, 5000);
-      return () => clearInterval(interval); 
-    }
+
     return () => {
       isMounted = false; // Cleanup to prevent state updates after unmount
     };
   }, [open]);
 
+  // Reset form when modal closes
   useEffect(() => {
     if (!open) {
-      resetForm(); 
+      resetForm();
     }
   }, [open]);
 
-  const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const usdtNgnBalance = (parseFloat(usdtBalanceFormatted) * usdtPrice).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : usdtNgnBalance;
-
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'accountNumber') {
-      if (value.length < 10) {
-        setFormData(prev => ({ 
-          ...prev, 
-          [name]: value,
-          accountName: ''
-        }));
-      } else if (value.length === 10 && formData.bankCode) {
-        setFormData(prev => ({ ...prev, [name]: value }));
-        verifyAccount(formData.bankCode, value);
-      } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
-      }
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      
-      if (name === 'bankCode' && formData.accountNumber.length === 10 && value) {
-        verifyAccount(value, formData.accountNumber);
-      }
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'accountNumber' && value.length === 10 && formData.bankCode) {
+      verifyAccount(formData.bankCode, value);
+    } else if (name === 'bankCode' && formData.accountNumber.length === 10) {
+      verifyAccount(value, formData.accountNumber);
     }
   };
 
+  // Verify account details
   const verifyAccount = async (bankCode: string, accountNumber: string) => {
     if (accountNumber.length !== 10) return;
     
@@ -198,6 +171,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -213,77 +187,58 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
       return;
     }
 
-    // Set loading state and wait for 4 seconds before showing the summary
     setLoading(true);
     setTimeout(() => {
       if (open) {
         setShowSummary(true);
-        setLoading(false); // Reset loading state after the delay
+        setLoading(false);
       }
-    }, 4000); // 4-second delay
+    }, 4000);
   };
 
+  // Handle transfer confirmation
   const handleConfirmTransfer = async () => {
-    setLoading(true); // Set loading state while processing
+    setLoading(true);
 
     const price = selectedToken.name === "USDC" ? usdcPrice : usdtPrice;
-    console.log("Withdrawal price:", price);
     const amountValue = parseFloat(formData.amount);
     const tokenAmount = await convertFiatToToken(amountValue, selectedToken.name, price);
 
     try {
       if (walletClient && publicClient) {
-        // Step 1: Approve the transaction (user signs for approval)
         await approveTransaction(tokenAmount, selectedToken.address, publicClient, walletClient);
 
         // Step 2: Initiate the transaction (user signs to initiate the transfer)
         const receipt = await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, formData.accountName, getBankName(formData.bankCode), publicClient, walletClient);
 
-        // Step 3: Call the backend API to complete the transfer
         if (receipt && receipt.status === 'success') {
-          try {
-            // Parse the transaction receipt to get event data
-            const parsedReceipt = await parseTransactionReceipt(receipt);
-            if (parsedReceipt) {
+          const parsedReceipt = await parseTransactionReceipt(receipt);
+          if (parsedReceipt) {
+            const response = await fetch('/api/initiate-transfer', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                bankCode: formData.bankCode,
+                accountNumber: formData.accountNumber,
+                accountName: formData.accountName,
+                amount: amountValue,
+              }),
+            });
         
-              // Send the transfer request to your backend API
-              const response = await fetch('/api/initiate-transfer', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  bankCode: formData.bankCode,
-                  accountNumber: formData.accountNumber,
-                  accountName: formData.accountName,
-                  amount: amountValue, // Use the amount from the event logs
-                }),
-              });
-          
-              const result = await response.json();
-          
-              if (result.success) {
-                // Mark the transaction as complete in the smart contract
-                await completeTransaction(parsedReceipt.txId, parsedReceipt.amount);
-          
-                // Show success toast (transfer is complete)
-                toast.success(`Your transfer of ₦${formData.amount.toString()} is complete!`);
-          
-                // Reset form and close modal
-                resetForm();
-                onOpenChange(false);
-              } else {
-                toast.error(result.message || "Could not complete your transfer request");
-              }
+            const result = await response.json();
+        
+            if (result.success) {
+              await completeTransaction(parsedReceipt.txId, parsedReceipt.amount);
+              toast.success(`Your transfer of ₦${formData.amount.toString()} is complete!`);
+              resetForm();
+              onOpenChange(false);
+            } else {
+              toast.error(result.message || "Could not complete your transfer request");
             }
           }
-            catch (error) {
-            console.error("Error processing transaction:", error);
-            toast.error("An error occurred while processing your transaction");
-          }
-          } 
-
-
+        }
       } else {
         toast.error("Wallet client is not available");
       }
@@ -292,11 +247,12 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
       console.error('Transfer error:', error);
     } finally {
       if (open) {
-        setLoading(false); // Only reset loading state if the modal is still open
+        setLoading(false);
       }
     }
   };
 
+  // Render transfer summary
   if (showSummary) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>  
@@ -308,7 +264,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
             recipient={formData.accountName}
             accountNumber={formData.accountNumber}  
             bankName={formData.bankCode}
-            onBack={() => {setShowSummary(false)
+            onBack={() => {
+              setShowSummary(false);
               setLoading(false);
             }}
             onConfirm={handleConfirmTransfer}
@@ -318,6 +275,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     );
   }
 
+  // Render transfer form
   return (
     <>
       <Toaster position="top-center" />
@@ -433,7 +391,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
                   type="submit"
                   className={`mt-6 flex w-full items-center bg-purple-600/50 justify-center gap-2 rounded-xl px-4 py-3 text-white transition-opacity`}
                 >
-                  {loading ? "Loading..." : "Transfer"} {/* Changed "Processing" to "Loading" */}
+                  {loading ? "Loading..." : "Transfer"}
                 </button>
               </form>
             </div>

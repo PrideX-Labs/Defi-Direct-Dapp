@@ -12,7 +12,7 @@ const config = getDefaultConfig({
   projectId, // WalletConnect Project ID
   chains: [scrollSepolia], // Supported chains
   ssr: true, // Enable server-side rendering (SSR) support
- 
+ multiInjectedProviderDiscovery: true
 });
 
 export { config };
