@@ -40,10 +40,11 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const usdc = parseFloat(usdcBalance) || 0;
     const usdt = parseFloat(usdtBalance) || 0;
 
-console.log("usdc NGN balance:", usdc);
-    const totalUp = usdc * usdcPrice + usdt * usdtPrice; // Calculate total balance in NGN
+console.log("usdc balance:", usdc);
+    const totalUp = (usdc * usdcPrice) + (usdt * usdtPrice); // Calculate total balance in NGN
+    console.log("Total UP NGN balance:", totalUp);
     const total = totalUp/10e5
-    // console.log("Total NGN balance:", total);
+    console.log("Total NGN balance:", total);
     setTotalNgnBalance(total);
   };
 

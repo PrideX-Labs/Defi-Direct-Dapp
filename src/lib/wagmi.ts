@@ -1,10 +1,10 @@
 // src/lib/wagmi.ts
 import { createConfig, http } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { scrollSepolia } from "wagmi/chains";
 
 export const config = createConfig({
-  chains: [baseSepolia], // Add other chains if needed
+  chains: [scrollSepolia], // Add other chains if needed
   transports: {
-    [baseSepolia.id]: http(), // Use the default HTTP provider
+    [scrollSepolia.id]: http(), // Use the default HTTP provider
   },
 });
