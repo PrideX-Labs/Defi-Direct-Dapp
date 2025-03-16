@@ -14,6 +14,7 @@ import { formatBalance } from "@/utils/formatBalance"
 import { fetchTokenPrice } from "@/utils/fetchTokenprice"
 import { TransferSummary } from "./transfer-summary"
 import { completeTransaction } from "@/services/completeTransaction"
+import { Form } from "antd"
 
 const tokens = [
   { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png", address: TOKEN_ADDRESSES['USDC'] },
@@ -79,6 +80,11 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     setShowSummary(false);
     setLoading(false);
     setVerifying(false);
+  };
+
+  const getBankName = (code: string) => {
+    const bank = banks.find(bank => bank.code === code);
+    return bank ? bank.name : '';
   };
 
   useEffect(() => {
@@ -231,7 +237,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
         await approveTransaction(tokenAmount, selectedToken.address, publicClient, walletClient);
 
         // Step 2: Initiate the transaction (user signs to initiate the transfer)
-        const receipt = await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, publicClient, walletClient);
+        const receipt = await initiateTransaction(tokenAmount, selectedToken.address, formData.accountNumber, amountValue, formData.accountName, getBankName(formData.bankCode), publicClient, walletClient);
 
         // Step 3: Call the backend API to complete the transfer
         if (receipt && receipt.status === 'success') {
