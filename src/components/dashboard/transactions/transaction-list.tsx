@@ -1,7 +1,7 @@
 "use client"; // Ensure this is a Client Component
 
 import { useEffect, useState } from "react";
-import { usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { retrieveTransactions } from "@/services/retrieveTransactions";
 import { TransactionHeader } from "./transaction-header";
@@ -48,6 +48,7 @@ const formatTransaction = (transaction: any, index: number): Transaction => ({
 
 export default function TransactionList() {
   const { connectedAddress } = useWallet();
+  const { address } = useAccount();
   const publicClient = usePublicClient() as any;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,7 @@ export default function TransactionList() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      if (!connectedAddress) {
+      if (!address) {
         setError("No connected wallet address found.");
         setLoading(false);
         return;
@@ -82,15 +83,15 @@ export default function TransactionList() {
     };
 
     fetchTransactions();
-  }, [connectedAddress, publicClient]);
+  }, [connectedAddress, publicClient, address]);
 
   if (loading) {
     return <div className="text-center text-gray-400">Loading transactions...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-red-400">{error}</div>;
-  }
+  // if (error) {
+  //   return <div className="text-center text-red-400">{error}</div>;
+  // }
 
   return (
     <div className="w-full max-w-2xl mx-auto rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-4 sm:p-6">

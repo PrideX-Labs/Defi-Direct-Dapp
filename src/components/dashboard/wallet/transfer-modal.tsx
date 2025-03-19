@@ -162,7 +162,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
       if (result.success) {
         setFormData(prev => ({ ...prev, accountName: result.data.account_name }));
       } else {
-        toast.error(result.message || "Could not verify account details");
+        toast.error("Could not verify account details");
+        // console.error('Account verification error:', result.message);
       }
     } catch (error) {
       console.error('Account verification error:', error);
@@ -235,7 +236,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
               resetForm();
               onOpenChange(false);
             } else {
-              toast.error(result.message || "Could not complete your transfer request");
+              toast.error("Could not complete your transfer request");
+              // console.error('Transfer error:', result.message);
             }
           }
         }

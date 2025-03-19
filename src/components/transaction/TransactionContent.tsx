@@ -86,9 +86,9 @@ function TransactionContent() {
     return <div className="text-center text-gray-400 p-6">Loading transactions...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-red-400 p-6">{error}</div>;
-  }
+  // if (error) {
+  //   return <div className="text-center text-red-400 p-6">{error}</div>;
+  // }
 
   return (
     <div className="h-screen text-white px-2 sm:px-4">
