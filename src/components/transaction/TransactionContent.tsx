@@ -8,9 +8,9 @@ import { usePublicClient } from "wagmi";
 function TransactionContent() {
   const [selectedFilter, setSelectedFilter] = useState("All types");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   const { connectedAddress } = useWallet();
   const publicClient = usePublicClient();
@@ -53,7 +53,7 @@ function TransactionContent() {
         );
 
         if (transactionResult) {
-          const formattedTransactions = transactionResult.map((tx: any, index: number) => ({
+          const formattedTransactions = transactionResult.map((tx, index: number) => ({
             id: (index + 1).toString(),
             name: tx.recipientName,
             bank: tx.fiatBank,

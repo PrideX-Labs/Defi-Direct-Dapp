@@ -37,7 +37,7 @@ const getStatus = (isCompleted: boolean, isRefunded: boolean): "successful" | "p
 };
 
 // Map the transaction result to the frontend format
-const formatTransaction = (transaction: any, index: number): Transaction => ({
+const formatTransaction = (transaction, index: number): Transaction => ({
   id: (index + 1).toString(), // Assuming the ID is just the index + 1
   recipient: transaction.recipientName,
   bank: transaction.fiatBank,
@@ -49,10 +49,10 @@ const formatTransaction = (transaction: any, index: number): Transaction => ({
 export default function TransactionList() {
   const { connectedAddress } = useWallet();
   const { address } = useAccount();
-  const publicClient = usePublicClient() as any;
+  const publicClient = usePublicClient();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {

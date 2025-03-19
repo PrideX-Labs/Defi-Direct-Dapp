@@ -6,7 +6,7 @@ import { useWallet } from '@/context/WalletContext';
 
 function SettingsContent() {
   const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(!!connectedAddress);
 
   const truncateAddress = (address: string): string => {
