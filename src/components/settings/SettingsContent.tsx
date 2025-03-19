@@ -66,11 +66,11 @@ function SettingsContent() {
       )}
 
       {/* Display error message if any */}
-      {error && (
+      {/* {error && (
         <div className="mt-4 text-red-500 text-sm bg-red-100 p-3 rounded-lg text-center">
           {error}
         </div>
-      )}
+      )} */}
         
     </div>
   );

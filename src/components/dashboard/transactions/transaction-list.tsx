@@ -56,7 +56,7 @@ export default function TransactionList() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      if (!connectedAddress) {
+      if (!address) {
         setError("No connected wallet address found.");
         setLoading(false);
         return;
@@ -89,9 +89,9 @@ export default function TransactionList() {
     return <div className="text-center text-gray-400">Loading transactions...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-red-400">{error}</div>;
-  }
+  // if (error) {
+  //   return <div className="text-center text-red-400">{error}</div>;
+  // }
 
   return (
     <div className="w-full max-w-2xl mx-auto rounded-3xl bg-gradient-to-b from-[#1C1C27] to-[#1C1C2700] p-4 sm:p-6">
