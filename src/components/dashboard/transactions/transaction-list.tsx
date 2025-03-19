@@ -1,11 +1,12 @@
 "use client"; // Ensure this is a Client Component
 
 import { useEffect, useState } from "react";
-import { useAccount, usePublicClient } from "wagmi";
+import { usePublicClient, useAccount } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { retrieveTransactions } from "@/services/retrieveTransactions";
 import { TransactionHeader } from "./transaction-header";
 import { TransactionItem } from "./transaction-item";
+import { PublicClient } from "viem";
 
 export type Transaction = {
   id: string;
@@ -15,6 +16,21 @@ export type Transaction = {
   status: "successful" | "pending" | "failed";
   timestamp: string;
 };
+
+type TransactionResult = {
+  user: `0x${string}`;
+  token: `0x${string}`;
+  amount: bigint;
+  amountSpent: bigint;
+  transactionFee: bigint;
+  transactionTimestamp: bigint;
+  fiatBankAccountNumber: bigint;
+  fiatBank: string;
+  recipientName: string;
+  fiatAmount: bigint;
+  isCompleted: boolean;
+  isRefunded: boolean;
+}
 
 // Function to format the timestamp into a human-readable format
 const formatTimestamp = (timestamp: bigint) => {
@@ -37,7 +53,7 @@ const getStatus = (isCompleted: boolean, isRefunded: boolean): "successful" | "p
 };
 
 // Map the transaction result to the frontend format
-const formatTransaction = (transaction, index: number): Transaction => ({
+const formatTransaction = (transaction: TransactionResult, index: number): Transaction => ({
   id: (index + 1).toString(), // Assuming the ID is just the index + 1
   recipient: transaction.recipientName,
   bank: transaction.fiatBank,
@@ -47,9 +63,9 @@ const formatTransaction = (transaction, index: number): Transaction => ({
 });
 
 export default function TransactionList() {
-  const { connectedAddress } = useWallet();
+  const { connectedAddress, totalNgnBalance } = useWallet();
   const { address } = useAccount();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient() as PublicClient;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
@@ -73,6 +89,7 @@ export default function TransactionList() {
           setTransactions(formattedTransactions);
         } else {
           setError("No transactions found.");
+          console.error(error);
         }
       } catch (err) {
         setError("Failed to fetch transactions.");
@@ -83,7 +100,7 @@ export default function TransactionList() {
     };
 
     fetchTransactions();
-  }, [connectedAddress, publicClient, address]);
+  }, [connectedAddress, publicClient, totalNgnBalance, address]);
 
   if (loading) {
     return <div className="text-center text-gray-400">Loading transactions...</div>;

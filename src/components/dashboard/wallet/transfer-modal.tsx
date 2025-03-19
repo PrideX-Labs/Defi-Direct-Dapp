@@ -10,11 +10,9 @@ import { usePublicClient, useWalletClient } from "wagmi";
 import { convertFiatToToken } from "@/utils/convertFiatToToken";
 import { TOKEN_ADDRESSES } from "@/config";
 import { useWallet } from "@/context/WalletContext";
-// import { formatBalance } from "@/utils/formatBalance";
 import { TransferSummary } from "./transfer-summary";
-// import { type PublicClient, type WalletClient } from 'viem';
 import { completeTransaction } from "@/services/completeTransaction";
-// import { Form } from "antd"
+
 
 const tokens = [
   { name: "USDC", logo: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png", address: TOKEN_ADDRESSES['USDC'] },
