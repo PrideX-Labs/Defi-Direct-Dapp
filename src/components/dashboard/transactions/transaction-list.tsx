@@ -6,6 +6,7 @@ import { useWallet } from "@/context/WalletContext";
 import { retrieveTransactions } from "@/services/retrieveTransactions";
 import { TransactionHeader } from "./transaction-header";
 import { TransactionItem } from "./transaction-item";
+import { PublicClient } from "viem";
 
 export type Transaction = {
   id: string;
@@ -15,6 +16,21 @@ export type Transaction = {
   status: "successful" | "pending" | "failed";
   timestamp: string;
 };
+
+type TransactionResult = {
+  user: `0x${string}`;
+  token: `0x${string}`;
+  amount: bigint;
+  amountSpent: bigint;
+  transactionFee: bigint;
+  transactionTimestamp: bigint;
+  fiatBankAccountNumber: bigint;
+  fiatBank: string;
+  recipientName: string;
+  fiatAmount: bigint;
+  isCompleted: boolean;
+  isRefunded: boolean;
+}
 
 // Function to format the timestamp into a human-readable format
 const formatTimestamp = (timestamp: bigint) => {
@@ -37,7 +53,7 @@ const getStatus = (isCompleted: boolean, isRefunded: boolean): "successful" | "p
 };
 
 // Map the transaction result to the frontend format
-const formatTransaction = (transaction: any, index: number): Transaction => ({
+const formatTransaction = (transaction: TransactionResult, index: number): Transaction => ({
   id: (index + 1).toString(), // Assuming the ID is just the index + 1
   recipient: transaction.recipientName,
   bank: transaction.fiatBank,
@@ -49,7 +65,7 @@ const formatTransaction = (transaction: any, index: number): Transaction => ({
 export default function TransactionList() {
   const { connectedAddress, totalNgnBalance } = useWallet();
   const { address } = useAccount();
-  const publicClient = usePublicClient() as any;
+  const publicClient = usePublicClient() as PublicClient;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +89,7 @@ export default function TransactionList() {
           setTransactions(formattedTransactions);
         } else {
           setError("No transactions found.");
+          console.error(error);
         }
       } catch (err) {
         setError("Failed to fetch transactions.");

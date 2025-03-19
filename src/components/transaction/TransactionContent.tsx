@@ -5,10 +5,35 @@ import { retrieveTransactions } from "@/services/retrieveTransactions";
 import { useWallet } from "@/context/WalletContext";
 import { usePublicClient } from "wagmi";
 
+export type Transaction = {
+  id: string;
+  name: string;
+  bank: string;
+  amount: string;
+  status: string;
+  date: string;
+};
+
+type TransactionResult = {
+  user: `0x${string}`;
+  token: `0x${string}`;
+  amount: bigint;
+  amountSpent: bigint;
+  transactionFee: bigint;
+  transactionTimestamp: bigint;
+  fiatBankAccountNumber: bigint;
+  fiatBank: string;
+  recipientName: string;
+  fiatAmount: bigint;
+  isCompleted: boolean;
+  isRefunded: boolean;
+}
+
+
 function TransactionContent() {
   const [selectedFilter, setSelectedFilter] = useState("All types");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +67,7 @@ function TransactionContent() {
     const fetchTransactions = async () => {
       if (!connectedAddress || !publicClient) {
         setError("No connected wallet address or public client found.");
+        console.log(error);
         setLoading(false);
         return;
       }
@@ -53,12 +79,12 @@ function TransactionContent() {
         );
 
         if (transactionResult) {
-          const formattedTransactions = transactionResult.map((tx: any, index: number) => ({
+          const formattedTransactions = transactionResult.map((tx: TransactionResult, index: number) => ({
             id: (index + 1).toString(),
             name: tx.recipientName,
             bank: tx.fiatBank,
             amount: Number(tx.fiatAmount).toLocaleString(),
-            status: getStatus(tx.isCompleted, tx.isRefunded),
+            status: getStatus(tx.isCompleted, tx.isRefunded) as string,
             date: formatTimestamp(tx.transactionTimestamp),
           }));
           setTransactions(formattedTransactions);
