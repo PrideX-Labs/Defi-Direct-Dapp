@@ -35,7 +35,7 @@ function TransactionContent() {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const { connectedAddress } = useWallet();
   const publicClient = usePublicClient();
