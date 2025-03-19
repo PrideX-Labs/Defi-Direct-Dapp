@@ -1,7 +1,7 @@
 "use client"; // Ensure this is a Client Component
 
 import { useEffect, useState } from "react";
-import { usePublicClient } from "wagmi";
+import { usePublicClient, useAccount } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { retrieveTransactions } from "@/services/retrieveTransactions";
 import { TransactionHeader } from "./transaction-header";
@@ -47,7 +47,8 @@ const formatTransaction = (transaction: any, index: number): Transaction => ({
 });
 
 export default function TransactionList() {
-  const { connectedAddress } = useWallet();
+  const { connectedAddress, totalNgnBalance } = useWallet();
+  const { address } = useAccount();
   const publicClient = usePublicClient() as any;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function TransactionList() {
     };
 
     fetchTransactions();
-  }, [connectedAddress, publicClient]);
+  }, [connectedAddress, publicClient, totalNgnBalance, address]);
 
   if (loading) {
     return <div className="text-center text-gray-400">Loading transactions...</div>;
