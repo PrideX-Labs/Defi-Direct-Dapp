@@ -1,13 +1,10 @@
 // src/lib/wagmi.ts
 import { createConfig, http } from "wagmi";
-import { cronosTestnet } from "wagmi/chains";
-
+import { baseSepolia } from "wagmi/chains";
 
 export const config = createConfig({
-  chains: [cronosTestnet], // Add other chains if needed
+  chains: [baseSepolia], // Add other chains if needed
   transports: {
-    [cronosTestnet.id]: http(), // Use the default HTTP provider
+    [baseSepolia.id]: http(), // Use the default HTTP provider
   },
-  multiInjectedProviderDiscovery: true
-  
 });
