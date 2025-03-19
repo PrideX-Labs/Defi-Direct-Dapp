@@ -1,7 +1,6 @@
-// src/context/WalletContext.tsx
 "use client";
 
-import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import { fetchTokenBalance } from "@/utils/fetchTokenBalance";
 import { fetchTokenPrice } from "@/utils/fetchTokenprice";
@@ -15,9 +14,7 @@ interface WalletContextType {
   walletName: string | null;
   usdcBalance: string;
   usdtBalance: string;
-  totalNgnBalance: number; // Total balance in NGN
-  usdcPrice: number; // USDC price in NGN
-  usdtPrice: number; // USDT price in NGN
+  totalNgnBalance: number; // Add total balance in NGN
   disconnectWallet: () => void;
 }
 
@@ -33,91 +30,65 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [usdcBalance, setUsdcBalance] = useState<string>("0");
   const [usdtBalance, setUsdtBalance] = useState<string>("0");
   const [totalNgnBalance, setTotalNgnBalance] = useState<number>(0); // Total balance in NGN
-  const [usdcPrice, setUsdcPrice] = useState<number>(0); // USDC price in NGN
-  const [usdtPrice, setUsdtPrice] = useState<number>(0); // USDT price in NGN
-  const [lastPriceUpdate, setLastPriceUpdate] = useState<number>(0); // Timestamp of last price update
 
-  // Function to fetch and cache token prices
-  const fetchAndCacheTokenPrices = useCallback(async () => {
-    const now = Date.now();
-    const cacheDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+  // Function to update total balance in NGN
+  const updateTotalNgnBalance = async (usdcBalance: string, usdtBalance: string) => {
+    // console.log("Updating total NGN balance...");
+    const usdcPrice = await fetchTokenPrice("usd-coin"); // Fetch USDC price in NGN
+    const usdtPrice = await fetchTokenPrice("tether"); // Fetch USDT price in NGN
 
-    // Only fetch new prices if the cache is stale
-    if (now - lastPriceUpdate > cacheDuration) {
-      try {
-        const [usdcPrice, usdtPrice] = await Promise.all([
-          fetchTokenPrice("usd-coin"),
-          fetchTokenPrice("tether"),
-        ]);
+    const usdc = parseFloat(usdcBalance) || 0;
+    const usdt = parseFloat(usdtBalance) || 0;
 
-        setUsdcPrice(usdcPrice);
-        setUsdtPrice(usdtPrice);
-        setLastPriceUpdate(now); // Update the last fetch timestamp
-      } catch (error) {
-        console.error("Failed to fetch token prices:", error);
-      }
-    }
-  }, [lastPriceUpdate]);
+console.log("usdc NGN balance:", usdc);
+    const totalUp = usdc * usdcPrice + usdt * usdtPrice; // Calculate total balance in NGN
+    const total = totalUp/10e5
+    // console.log("Total NGN balance:", total);
+    setTotalNgnBalance(total);
+  };
 
-  // Function to fetch token balances
-  const fetchBalances = useCallback(async () => {
-    if (!address) return;
+  // src/context/WalletContext.tsx
+useEffect(() => {
+  // console.log("useEffect triggered");
+  setIsAuthenticated(isConnected);
 
-    try {
-      const [usdcBalance, usdtBalance] = await Promise.all([
-        fetchTokenBalance("USDC", address),  
-        fetchTokenBalance("USDT", address),
-      ]);
+  if (!isConnected || !connector || !address) {
+    // console.log("Wallet not connected or address not available");
+    setWalletIcon(null);
+    setWalletName(null);
+    setUsdcBalance("0");
+    setUsdtBalance("0");
+    setTotalNgnBalance(0);
+    return;
+  }
 
-      setUsdcBalance(usdcBalance);
-      setUsdtBalance(usdtBalance);
+  const walletId = connector.id.toLowerCase();
+  console.log("Connector ID:", walletId); // Log the connector ID
+  setWalletIcon(walletIcons[walletId] || null); // Set wallet icon or fallback
+  setWalletName(connector.name || null);
 
-      // Update total NGN balance\
-      console.log("USDC Balance:", usdcBalance)
-      const usdc = parseFloat(usdcBalance) || 0;
-      console.log("USDC:", usdc)
-      console.log("USDT Balance:", usdtBalance)
-      const usdt = parseFloat(usdtBalance) || 0;
-      const totalUp = usdc * usdcPrice + usdt * usdtPrice; // Calculate total balance in NGN
-      const total = totalUp / 10e5;
-      setTotalNgnBalance(total);
-    } catch (error) {
-      console.error("Failed to fetch token balances:", error);
-    }
-  }, [address, usdcPrice, usdtPrice]);
+  // Function to fetch balances
+  const fetchBalances = async () => {
+    // console.log("Fetching balances...");
+    const usdcBalance = await fetchTokenBalance("USDC", address);
+    const usdtBalance = await fetchTokenBalance("USDT", address);
 
-  // Update wallet connection state and fetch data
-  useEffect(() => {
-    setIsAuthenticated(isConnected);
+    setUsdcBalance(usdcBalance);
+    setUsdtBalance(usdtBalance);
 
-    if (!isConnected || !connector || !address) {
-      setWalletIcon(null);
-      setWalletName(null);
-      setUsdcBalance("0");
-      setUsdtBalance("0");
-      setTotalNgnBalance(0);
-      setUsdcPrice(0);
-      setUsdtPrice(0);
-      return;
-    }
+    // Calculate total balance in NGN after both balances are fetched
+    await updateTotalNgnBalance(usdcBalance, usdtBalance);
+  };
 
-    const walletId = connector.id.toLowerCase();
-    setWalletIcon(walletIcons[walletId] || null);
-    setWalletName(connector.name || null);
+  // Fetch balances immediately
+  fetchBalances();
 
-    // Fetch balances immediately
-    fetchBalances();
+  // Set up an interval to fetch balances every 5 seconds
+  const intervalId = setInterval(fetchBalances, 400000);
 
-    // Fetch and cache token prices periodically
-    const priceIntervalId = setInterval(fetchAndCacheTokenPrices, 5 * 60 * 1000); // Fetch every 5 minutes
-    fetchAndCacheTokenPrices(); // Fetch immediately on mount
-
-    // Clean up intervals
-    return () => {
-      clearInterval(priceIntervalId);
-    };
-  }, [isConnected, connector, address, fetchBalances, fetchAndCacheTokenPrices]);
-
+  // Clean up the interval when the component unmounts or dependencies change
+  return () => clearInterval(intervalId);
+}, [isConnected, connector, address]); // Only re-run if these dependencies change
   return (
     <WalletContext.Provider
       value={{
@@ -128,9 +99,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         walletName,
         usdcBalance,
         usdtBalance,
-        totalNgnBalance,
-        usdcPrice,
-        usdtPrice,
+        totalNgnBalance, // Pass total balance in NGN
         disconnectWallet: disconnect,
       }}
     >

@@ -30,7 +30,7 @@ export async function verifyAccountNumber(accountNumber: string, bankCode: strin
     return response.data;
   } catch (error) {
     console.error('Error verifying account:', error);
-    // throw error;
+    throw error;
   }
 }
 

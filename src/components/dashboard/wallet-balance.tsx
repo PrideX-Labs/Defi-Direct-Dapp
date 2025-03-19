@@ -4,14 +4,15 @@
 import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { TransferModal } from "./wallet/transfer-modal";
-import { useWallet } from "@/context/WalletContext";
 
+interface WalletBalanceProps {
+  balance: number; // Total balance in NGN
+ 
+}
 
-
-
-export default function WalletBalance() {
+export default function WalletBalance({ balance  }: WalletBalanceProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { totalNgnBalance } = useWallet(); 
+
   
 
   return (
@@ -21,7 +22,7 @@ export default function WalletBalance() {
           <h2 className="text-lg font-medium text-white">Wallet Balance</h2>
           <p className="text-4xl font-semibold text-white">
             ₦
-            {totalNgnBalance.toLocaleString(undefined, {
+            {balance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -35,7 +36,7 @@ export default function WalletBalance() {
           </button>
         </div>
       </div>
-      <TransferModal open={isOpen} onOpenChange={setIsOpen}  />
+      <TransferModal open={isOpen} onOpenChange={setIsOpen} balance={balance} />
     </>
   );
 }

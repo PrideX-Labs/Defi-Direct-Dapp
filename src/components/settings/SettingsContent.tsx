@@ -6,6 +6,7 @@ import { useWallet } from '@/context/WalletContext';
 
 function SettingsContent() {
   const { connectedAddress, disconnectWallet, walletIcon, walletName } = useWallet();
+  const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(!!connectedAddress);
 
   const truncateAddress = (address: string): string => {
@@ -14,6 +15,7 @@ function SettingsContent() {
 
   const handleDisconnect = () => {
     disconnectWallet();
+    setError(null);
     setIsConnected(false);
   };
 
@@ -64,11 +66,11 @@ function SettingsContent() {
       )}
 
       {/* Display error message if any */}
-      {/* {error && (
+      {error && (
         <div className="mt-4 text-red-500 text-sm bg-red-100 p-3 rounded-lg text-center">
           {error}
         </div>
-      )} */}
+      )}
         
     </div>
   );

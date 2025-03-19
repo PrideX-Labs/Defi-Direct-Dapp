@@ -64,8 +64,6 @@ export const initiateTransaction = async (
     tokenAddress: string,
     fiatBankAccountNumber: string,
     fiatAmount: number,
-    recipientName: string,
-    recipientBank: string,
     publicClient: PublicClient, // Wagmi's publicClient
     walletClient: WalletClient
   ) => {
@@ -81,7 +79,7 @@ export const initiateTransaction = async (
           address: CONTRACT_ADDRESS,
           abi: CONTRACT_ABI,
           functionName: 'initiateFiatTransaction',
-          args: [tokenAddress as `0x${string}`, BigInt(amount), BigInt(fiatBankAccountNumber), BigInt(fiatAmount), recipientBank, recipientName],
+          args: [tokenAddress as `0x${string}`, BigInt(amount), BigInt(fiatBankAccountNumber), BigInt(fiatAmount)],
           account: walletClient.account!,
           chain: publicClient.chain
         });

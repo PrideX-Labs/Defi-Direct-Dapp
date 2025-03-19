@@ -1,6 +1,6 @@
 // lib/rainbowKitConfig.ts
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import {cronosTestnet } from 'wagmi/chains';
+import {baseSepolia } from 'wagmi/chains';
 
 
 // Replace with your WalletConnect Project ID
@@ -10,9 +10,9 @@ const projectId = '159bf96cf1aa026dad215f2782ba2f1d';
 const config = getDefaultConfig({
   appName: 'Defi-Direct', // Your app name
   projectId, // WalletConnect Project ID
-  chains: [cronosTestnet], // Supported chains
+  chains: [baseSepolia], // Supported chains
   ssr: true, // Enable server-side rendering (SSR) support
- multiInjectedProviderDiscovery: true
+ 
 });
 
 export { config };
