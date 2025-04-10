@@ -1,38 +1,39 @@
-// src/components/dashboard/stable-coin-list.tsx
-"use client";
+"use client"
 
-import { useWallet } from "@/context/WalletContext";
+import { useWallet } from "@/context/WalletContext"
 import { StableCoinItem } from "./stable-coin-item";
-import { formatBalance } from "@/utils/formatBalance";
-import { useEffect, useState, useCallback } from "react";
+import { formatBalance } from "@/utils/formatBalance"
+import { useEffect, useState, useCallback } from "react"
+import StableCoinListSkeleton from "./stable-coin-list-skeleton"
 
 export type StableCoin = {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: string; // Balance is now a string (formatted)
-  ngnBalance: string; // NGN balance
-  icon: string;
-};
+  id: string
+  name: string
+  symbol: string
+  balance: string
+  ngnBalance: string
+  icon: string
+}
 
 export default function StableCoinList() {
-  const { usdcBalance, usdtBalance, usdcPrice, usdtPrice } = useWallet();
-  const [stableCoins, setStableCoins] = useState<StableCoin[]>([]);
+  const { usdcBalance, usdtBalance, usdcPrice, usdtPrice } = useWallet()
+  const [stableCoins, setStableCoins] = useState<StableCoin[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Function to update stable coin data
   const updateStableCoins = useCallback(() => {
-    const usdcBalanceFormatted = usdcBalance;
-    const usdtBalanceFormatted = usdtBalance;
+    const usdcBalanceFormatted = usdcBalance
+    const usdtBalanceFormatted = usdtBalance
 
-    const usdcNgnBalance = ((parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(undefined, {
+    const usdcNgnBalance = ((Number.parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })
 
-    const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(undefined, {
+    const usdtNgnBalance = ((Number.parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })
 
     // Set stable coins with updated balances
     setStableCoins([
@@ -42,7 +43,7 @@ export default function StableCoinList() {
         name: "USDC $1",
         balance: formatBalance(usdcBalanceFormatted),
         ngnBalance: `₦${usdcNgnBalance}`,
-        icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+        icon: "https://altcoinsbox.com/wp-content/uploads/2023/01/usd-coin-usdc-logo-600x600.webp",
       },
       {
         id: "2",
@@ -50,15 +51,24 @@ export default function StableCoinList() {
         name: "USDT $1",
         balance: formatBalance(usdtBalanceFormatted),
         ngnBalance: `₦${usdtNgnBalance}`,
-        icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
+        icon: "https://altcoinsbox.com/wp-content/uploads/2023/01/tether-logo-600x600.webp",
       },
-    ]);
-  }, [usdcBalance, usdtBalance, usdcPrice, usdtPrice]);
+    ])
+
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setLoading(false)
+    }, 1500)
+  }, [usdcBalance, usdtBalance, usdcPrice, usdtPrice])
 
   // Update stable coins when balances or prices change
   useEffect(() => {
-    updateStableCoins();
-  }, [updateStableCoins]);
+    updateStableCoins()
+  }, [updateStableCoins])
+
+  if (loading) {
+    return <StableCoinListSkeleton />
+  }
 
   return (
     <div className="w-full h-full rounded-3xl p-6">
@@ -74,5 +84,5 @@ export default function StableCoinList() {
         ))}
       </div>
     </div>
-  );
+  )
 }

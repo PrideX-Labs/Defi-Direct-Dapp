@@ -45,13 +45,16 @@
 
 
 import { ArrowUpRight } from "lucide-react"
-import type { Transaction } from "./transaction-list"
+import type { Transaction } from "@/context/WalletContext";
+
+
+
 
 const statusColors = {
   successful: "text-green-500",
   pending: "text-orange-500",
   failed: "text-red-500",
-}
+};
 
 interface TransactionItemProps {
   transaction: Transaction
@@ -82,7 +85,7 @@ export function TransactionItem({ transaction, isLast, opacity }: TransactionIte
 
         {/* Right side - Amount and Status */}
         <div className="text-right ml-12 sm:ml-0">
-          <p className={`font-medium ${statusColors[status]} text-sm sm:text-base`}>
+        <p className={`font-medium ${statusColors[status]} text-sm sm:text-base`}>
             NGN{amount.toLocaleString()}
           </p>
           <p className="text-xs sm:text-sm text-gray-400">

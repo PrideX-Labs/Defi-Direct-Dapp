@@ -1,82 +1,82 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { retrieveTransactions } from "@/services/retrieveTransactions";
-import { useWallet } from "@/context/WalletContext";
-import { usePublicClient } from "wagmi";
+import { useState, useEffect } from "react"
+import { retrieveTransactions } from "@/services/retrieveTransactions"
+import { useWallet } from "@/context/WalletContext"
+import { usePublicClient } from "wagmi"
+import TransactionContentSkeleton from "./transaction-content-skeleton"
 
 export type Transaction = {
-  id: string;
-  name: string;
-  bank: string;
-  amount: string;
-  status: string;
-  date: string;
-};
-
-type TransactionResult = {
-  user: `0x${string}`;
-  token: `0x${string}`;
-  amount: bigint;
-  amountSpent: bigint;
-  transactionFee: bigint;
-  transactionTimestamp: bigint;
-  fiatBankAccountNumber: bigint;
-  fiatBank: string;
-  recipientName: string;
-  fiatAmount: bigint;
-  isCompleted: boolean;
-  isRefunded: boolean;
+  id: string
+  name: string
+  bank: string
+  amount: string
+  status: string
+  date: string
 }
 
+type TransactionResult = {
+  user: `0x${string}`
+  token: `0x${string}`
+  amount: bigint
+  amountSpent: bigint
+  transactionFee: bigint
+  transactionTimestamp: bigint
+  fiatBankAccountNumber: bigint
+  fiatBank: string
+  recipientName: string
+  fiatAmount: bigint
+  isCompleted: boolean
+  isRefunded: boolean
+}
 
 function TransactionContent() {
-  const [selectedFilter, setSelectedFilter] = useState("All types");
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState("All types")
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const { connectedAddress } = useWallet();
-  const publicClient = usePublicClient();
+  const { connectedAddress } = useWallet()
+  const publicClient = usePublicClient()
 
-  const filters = ["All types", "Successful", "Pending", "Failed"];
+  const filters = ["All types", "Successful", "Pending", "Failed"]
 
   // Function to format the timestamp into a human-readable format
   const formatTimestamp = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) * 1000); // Convert BigInt to Number and then to milliseconds
+    const date = new Date(Number(timestamp) * 1000) // Convert BigInt to Number and then to milliseconds
     const options: Intl.DateTimeFormatOptions = {
       month: "short",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    };
-    return date.toLocaleString("en-US", options).replace(",", ".");
-  };
+    }
+    return date.toLocaleString("en-US", options).replace(",", ".")
+  }
 
   // Function to determine the status
   const getStatus = (isCompleted: boolean, isRefunded: boolean) => {
-    if (!isCompleted && !isRefunded) return "pending";
-    if (isCompleted && isRefunded) return "failed";
-    if (isCompleted && !isRefunded) return "successful";
-  };
+    if (!isCompleted && !isRefunded) return "pending"
+    if (isCompleted && isRefunded) return "failed"
+    if (isCompleted && !isRefunded) return "successful"
+  }
 
   // Fetch transactions
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!connectedAddress || !publicClient) {
-        setError("No connected wallet address or public client found.");
-        console.log(error);
-        setLoading(false);
-        return;
+        setError("No connected wallet address or public client found.")
+        console.log(error)
+        setLoading(false)
+        return
       }
 
       try {
-        const transactionResult = await retrieveTransactions(
-          publicClient,
-          connectedAddress as `0x${string}`
-        );
+        // Add a slight delay to make the loading state visible
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+
+        const transactionResult = await retrieveTransactions(publicClient, connectedAddress as `0x${string}`)
 
         if (transactionResult) {
           const formattedTransactions = transactionResult.map((tx: TransactionResult, index: number) => ({
@@ -86,35 +86,223 @@ function TransactionContent() {
             amount: Number(tx.fiatAmount).toLocaleString(),
             status: getStatus(tx.isCompleted, tx.isRefunded) as string,
             date: formatTimestamp(tx.transactionTimestamp),
-          }));
-          setTransactions(formattedTransactions);
+          }))
+          setTransactions(formattedTransactions)
         } else {
-          setError("No transactions found.");
+          setError("No transactions found.")
         }
       } catch (err) {
-        setError("Failed to fetch transactions.");
-        console.error(err);
+        setError("Failed to fetch transactions.")
+        console.error(err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchTransactions();
-  }, [connectedAddress, publicClient]);
+    fetchTransactions()
+  }, [connectedAddress, publicClient])
 
   // Filter transactions based on the selected filter
   const filteredTransactions = transactions.filter((transaction) => {
-    if (selectedFilter === "All types") return true;
-    return transaction.status.toLowerCase() === selectedFilter.toLowerCase();
-  });
+    if (selectedFilter === "All types") return true
+    return transaction.status.toLowerCase() === selectedFilter.toLowerCase()
+  })
 
   if (loading) {
-    return <div className="text-center text-gray-400 p-6">Loading transactions...</div>;
+    return <TransactionContentSkeleton />
   }
 
-  // if (error) {
-  //   return <div className="text-center text-red-400 p-6">{error}</div>;
-  // }
+  if (error) {
+    return (
+      <div className="h-screen text-white px-2 sm:px-4">
+        <div className="bg-gradient-to-b from-[#151021] via-[#151021] to-[#2f1256] rounded-t-2xl p-3 sm:p-4 lg:p-6 h-full flex flex-col">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6 sm:mb-8">
+            {/* Filter Buttons - Desktop */}
+            <div className="hidden sm:flex rounded-full bg-[#352f3c] text-white">
+              {filters.map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setSelectedFilter(filter)}
+                  className={`px-4 py-2 ${
+                    selectedFilter === filter ? "bg-purple-600 rounded-full" : ""
+                  } whitespace-nowrap text-sm lg:text-base`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            {/* Filter Dropdown - Mobile */}
+            <div className="relative sm:hidden">
+              <button
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                className="w-full bg-[#352f3c] px-4 py-2 rounded-full flex justify-between items-center"
+              >
+                <span>{selectedFilter}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isFilterDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#352f3c] rounded-lg overflow-hidden z-10">
+                  {filters.map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        setSelectedFilter(filter)
+                        setIsFilterDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left hover:bg-[#453f4c] ${
+                        selectedFilter === filter ? "bg-purple-600" : ""
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Date Filter */}
+            <button className="flex items-center justify-center bg-[#352f3c] px-4 sm:px-6 py-2 rounded-full text-sm lg:text-base whitespace-nowrap">
+              <span className="mr-2">Last 7 days</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-gray-400 mb-4">{error}</p>
+              <button
+                onClick={() => {
+                  setLoading(true)
+                  setError(null)
+                  // Re-fetch transactions
+                  const fetchTransactions = async () => {
+                    try {
+                      const transactionResult = await retrieveTransactions(
+                        publicClient,
+                        connectedAddress as `0x${string}`,
+                      )
+                      if (transactionResult) {
+                        const formattedTransactions = transactionResult.map((tx: TransactionResult, index: number) => ({
+                          id: (index + 1).toString(),
+                          name: tx.recipientName,
+                          bank: tx.fiatBank,
+                          amount: Number(tx.fiatAmount).toLocaleString(),
+                          status: getStatus(tx.isCompleted, tx.isRefunded) as string,
+                          date: formatTimestamp(tx.transactionTimestamp),
+                        }))
+                        setTransactions(formattedTransactions)
+                        setError(null)
+                      } else {
+                        setError("No transactions found.")
+                      }
+                    } catch (err) {
+                      setError("Failed to fetch transactions.")
+                      console.error(err)
+                    } finally {
+                      setLoading(false)
+                    }
+                  }
+                  fetchTransactions()
+                }}
+                className="px-4 py-2 bg-purple-600 rounded-full hover:bg-purple-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (filteredTransactions.length === 0) {
+    return (
+      <div className="h-screen text-white px-2 sm:px-4">
+        <div className="bg-gradient-to-b from-[#151021] via-[#151021] to-[#2f1256] rounded-t-2xl p-3 sm:p-4 lg:p-6 h-full flex flex-col">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6 sm:mb-8">
+            {/* Filter Buttons - Desktop */}
+            <div className="hidden sm:flex rounded-full bg-[#352f3c] text-white">
+              {filters.map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setSelectedFilter(filter)}
+                  className={`px-4 py-2 ${
+                    selectedFilter === filter ? "bg-purple-600 rounded-full" : ""
+                  } whitespace-nowrap text-sm lg:text-base`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            {/* Filter Dropdown - Mobile */}
+            <div className="relative sm:hidden">
+              <button
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                className="w-full bg-[#352f3c] px-4 py-2 rounded-full flex justify-between items-center"
+              >
+                <span>{selectedFilter}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isFilterDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#352f3c] rounded-lg overflow-hidden z-10">
+                  {filters.map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        setSelectedFilter(filter)
+                        setIsFilterDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left hover:bg-[#453f4c] ${
+                        selectedFilter === filter ? "bg-purple-600" : ""
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Date Filter */}
+            <button className="flex items-center justify-center bg-[#352f3c] px-4 sm:px-6 py-2 rounded-full text-sm lg:text-base whitespace-nowrap">
+              <span className="mr-2">Last 7 days</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-gray-400">
+              {selectedFilter === "All types"
+                ? "No transactions found"
+                : `No ${selectedFilter.toLowerCase()} transactions found`}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen text-white px-2 sm:px-4">
@@ -159,8 +347,8 @@ function TransactionContent() {
                   <button
                     key={filter}
                     onClick={() => {
-                      setSelectedFilter(filter);
-                      setIsFilterDropdownOpen(false);
+                      setSelectedFilter(filter)
+                      setIsFilterDropdownOpen(false)
                     }}
                     className={`w-full px-4 py-2 text-left hover:bg-[#453f4c] ${
                       selectedFilter === filter ? "bg-purple-600" : ""
@@ -211,8 +399,8 @@ function TransactionContent() {
                     transaction.status === "successful"
                       ? "text-green-500"
                       : transaction.status === "pending"
-                      ? "text-yellow-500"
-                      : "text-red-500"
+                        ? "text-orange-500"
+                        : "text-red-500"
                   }`}
                 >
                   NGN{transaction.amount}
@@ -226,7 +414,7 @@ function TransactionContent() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default TransactionContent;
+export default TransactionContent

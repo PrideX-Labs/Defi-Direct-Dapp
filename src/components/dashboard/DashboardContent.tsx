@@ -1,25 +1,36 @@
-// src/app/dashboard/page.tsx
-"use client";
+"use client"
 
-// import { message } from "antd";
-import WalletBalance from "@/components/dashboard/wallet-balance";
-import TransactionList from "./transactions/transaction-list";
-import StableCoinList from "./stablecoins/stable-coin-list";
-import { useWallet } from "@/context/WalletContext";
+import { Suspense } from "react"
+import WalletBalance from "@/components/dashboard/wallet-balance"
+import TransactionList from "./transactions/transaction-list"
+import StableCoinList from "./stablecoins/stable-coin-list"
+import { useWallet } from "@/context/WalletContext"
+import WalletBalanceSkeleton from "@/components/dashboard/wallet-balance-skeleton"
+import TransactionListSkeleton from "./transactions/transaction-list-skeleton"
+import StableCoinListSkeleton from "@/components/dashboard/stablecoins/stable-coin-list-skeleton"
 
 export default function Dashboard() {
-  const { totalNgnBalance } = useWallet(); // Get total balance in NGN from context
-  console.log("Total NGN Balance in Dashboard:", totalNgnBalance);
+  const { totalNgnBalance } = useWallet() // Get total balance in NGN from context
 
   return (
-    <div className="grid gap-6 p-6 md:grid-cols-2">
-      <div className="space-y-6">
-        <WalletBalance/>
-        <TransactionList />
+    <div className="grid gap-6 p-6 md:grid-cols-2 h-[calc(100vh-80px)] overflow-hidden">
+      <div className="space-y-6 overflow-hidden flex flex-col">
+        <Suspense fallback={<WalletBalanceSkeleton />}>
+          <div className="flex-shrink-0">
+            <WalletBalance />
+          </div>
+        </Suspense>
+        <Suspense fallback={<TransactionListSkeleton />}>
+          <div className="flex-1 overflow-hidden">
+            <TransactionList />
+          </div>
+        </Suspense>
       </div>
-      <div>
-        <StableCoinList />
+      <div className="overflow-hidden">
+        <Suspense fallback={<StableCoinListSkeleton />}>
+          <StableCoinList />
+        </Suspense>
       </div>
     </div>
-  );
+  )
 }
