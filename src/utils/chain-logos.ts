@@ -28,7 +28,7 @@ export const getChainLogo = (chainId: number): string => {
       // Binance Smart Chain
       56: "https://altcoinsbox.com/wp-content/uploads/2023/01/bnb-chain-binance-smart-chain-logo-600x600.webp",
       // Avalanche
-      42161: "https://vectorseek.com/wp-content/uploads/2023/02/Avalanche-AVAX-Logo-Vector.jpg",
+      43114: "https://vectorseek.com/wp-content/uploads/2023/02/Avalanche-AVAX-Logo-Vector.jpg",
   
       // Fallbacks for major networks
       // Ethereum Mainnet

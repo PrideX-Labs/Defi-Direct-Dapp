@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { usePublicClient, useAccount } from "wagmi"
 import { useWallet, type Transaction } from "@/context/WalletContext"
 import { retrieveTransactions } from "@/services/retrieveTransactions"
@@ -67,9 +67,38 @@ export default function TransactionList() {
   // Number of transactions to show on dashboard
   const MAX_DASHBOARD_TRANSACTIONS = 3
 
-  const fetchTransactions = async () => {
-    if (!address) {
+  // Memoize fetchTransactions to prevent unnecessary re-renders
+  const fetchTransactions = useCallback(async () => {
+    if (!address || !publicClient) {
       setError("No connected wallet address found.")
+      setLoading(false)
+      return
+    }
+
+    // All supported chains in your app
+    const supportedChains = [
+      1, 10, 25, 56, 137, 338, 43114, 534351, 534352,
+      8453, 1101, 11155111, 1135, 4202, 41923, 656476,
+      42161, 1001, 10000070
+    ]
+
+    // Chains where the contract is actually deployed
+    const contractDeployedChains = [534351] // Scroll Sepolia only for now
+
+    const currentChainId = publicClient.chain?.id
+
+    // Check if the current chain is supported by the app
+    if (!currentChainId || !supportedChains.includes(currentChainId)) {
+      setError("This chain is not supported by the application.")
+      setConfirmedTransactions([])
+      setLoading(false)
+      return
+    }
+
+    // Check if the contract is deployed on the current chain
+    if (!contractDeployedChains.includes(currentChainId)) {
+      setError("Contract not deployed on this chain.")
+      setConfirmedTransactions([])
       setLoading(false)
       return
     }
@@ -77,19 +106,29 @@ export default function TransactionList() {
     try {
       const transactionResult = await retrieveTransactions(publicClient, connectedAddress as `0x${string}`)
 
-      if (transactionResult) {
+      if (Array.isArray(transactionResult) && transactionResult.length > 0) {
         const formattedTransactions = transactionResult.map(formatTransaction)
         setConfirmedTransactions(formattedTransactions)
+        setError(null)
       } else {
-        setError("No transactions found.")
+        // No transactions found on a chain with the contract
+        setConfirmedTransactions([])
+        setError(null)
       }
-    } catch (err) {
-      setError("Failed to fetch transactions.")
-      console.error(err)
+    } catch (err: unknown) { // Changed from any to unknown
+      if (err instanceof Error && (err.message?.includes("contract not deployed") || err.message?.includes("code=CALL_EXCEPTION"))) {
+        setError("Contract not deployed on this chain.")
+      } else if (err instanceof Error && (err.message?.includes("network") || err.message?.includes("timeout"))) {
+        setError("Network error while fetching transactions.")
+      } else {
+        setError("Failed to fetch transactions. Please try again.")
+        console.error("Error fetching transactions:", err)
+      }
+      setConfirmedTransactions([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [address, publicClient, connectedAddress]) // Dependencies for fetchTransactions
 
   useEffect(() => {
     // Add a slight delay to make the loading state visible
@@ -98,7 +137,7 @@ export default function TransactionList() {
     }, 1500)
 
     return () => clearTimeout(timer)
-  }, [connectedAddress, publicClient, address, transactionTrigger])
+  }, [fetchTransactions, transactionTrigger]) // Include fetchTransactions and transactionTrigger
 
   // Combine pending and confirmed transactions, filtering out duplicates
   const allTransactions = [

@@ -10,7 +10,7 @@ import { FaThLarge, FaChevronDown } from "react-icons/fa";
 import { useRouter, usePathname } from "next/navigation";
 
 function HeroSection() {
-  const { connectedAddress, isAuthenticated, disconnectWallet } = useWallet();
+  const { isAuthenticated, disconnectWallet } = useWallet();
   const router = useRouter();
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -40,7 +40,7 @@ function HeroSection() {
         <div className="mr-6 z-10 flex items-center gap-4">
           {/* Customized ConnectButton */}
           <ConnectButton.Custom>
-            {({ account, chain, openConnectModal, openChainModal, openAccountModal, mounted }) => {
+            {({ account, chain, openConnectModal, openChainModal, mounted }) => {
               const connected = mounted && account && chain;
               return (
                 <div>

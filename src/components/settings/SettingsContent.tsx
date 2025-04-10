@@ -33,7 +33,6 @@ function SettingsContent() {
   const [isConnected, setIsConnected] = useState<boolean>(!!connectedAddress)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [showAllNetworks, setShowAllNetworks] = useState(false)
   const [activeTab, setActiveTab] = useState<"popular" | "all" | "testnet">("popular")
 
   // Include all supported chains from your wagmi config
