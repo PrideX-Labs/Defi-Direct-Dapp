@@ -7,13 +7,20 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider, darkTheme} from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/rainbowKitConfig';
 
-const queryClient = new QueryClient();
 
+let queryClient: QueryClient | null = null;
+
+const getQueryClient = () => {
+  if (!queryClient) {
+    queryClient = new QueryClient();
+  }
+  return queryClient;
+};
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={getQueryClient()}>
         <RainbowKitProvider theme={darkTheme({
         accentColor: '#7b3fe4',
         accentColorForeground: 'white',

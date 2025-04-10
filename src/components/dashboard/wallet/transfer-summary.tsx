@@ -8,7 +8,7 @@ interface TransferSummaryProps {
   loading: boolean
   verifying: boolean
   onBack: () => void
-  onConfirm: () => void
+  onConfirm: () => Promise<void> 
 }
 
 export function TransferSummary({
@@ -20,6 +20,19 @@ export function TransferSummary({
   onBack,
   onConfirm,
 }: TransferSummaryProps) {
+  const formatDateTime = (date: Date): string => {
+    const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."]
+    const month = months[date.getMonth()]
+    const day = date.getDate()
+    let hours = date.getHours()
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    const ampm = hours >= 12 ? 'pm' : 'am'
+    
+    hours = hours % 12
+    hours = hours ? hours : 12 // the hour '0' should be '12'
+    
+    return `${month} ${day}, ${hours}:${minutes}${ampm}`
+  }
   return (
     <div className="w-full max-w-xl rounded-[2.5rem] bg-gradient-to-b from-[#1C1C27] to-[#14141B] p-6">
       <div className="flex items-center gap-3">
@@ -65,7 +78,7 @@ export function TransferSummary({
 
           <div className="flex justify-between">
             <p className="text-lg text-white">Time</p>
-            <p className="text-sm text-gray-500">Dec. 16, 16:31pm</p>
+            <p className="text-sm text-gray-500">{formatDateTime(new Date())}</p>
           </div>
 
           <div className="flex justify-between">

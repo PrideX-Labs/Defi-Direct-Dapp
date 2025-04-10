@@ -1,117 +1,77 @@
-// src/components/dashboard/stable-coin-list.tsx
-"use client";
+"use client"
 
-import { useWallet } from "@/context/WalletContext";
+import { useWallet } from "@/context/WalletContext"
 import { StableCoinItem } from "./stable-coin-item";
-import { formatBalance } from "@/utils/formatBalance";
-import { fetchTokenPrice } from "@/utils/fetchTokenprice";
-import { useEffect, useState, useRef } from "react";
+import { formatBalance } from "@/utils/formatBalance"
+import { useEffect, useState, useCallback } from "react"
+import StableCoinListSkeleton from "./stable-coin-list-skeleton"
 
-// Export the StableCoin type
 export type StableCoin = {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: string; // Balance is now a string (formatted)
-  ngnBalance: string; // NGN balance
-  icon: string;
-};
-
-
+  id: string
+  name: string
+  symbol: string
+  balance: string
+  ngnBalance: string
+  icon: string
+}
 
 export default function StableCoinList() {
-  const { usdcBalance, usdtBalance } = useWallet();
-  console.log("USDC Balance in StableCoinList:", usdcBalance);
-  console.log("USDT Balance in StableCoinList:", usdtBalance);
-  const [stableCoins, setStableCoins] = useState<StableCoin[]>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the interval ID
+  const { usdcBalance, usdtBalance, usdcPrice, usdtPrice } = useWallet()
+  const [stableCoins, setStableCoins] = useState<StableCoin[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Refs to store previous prices and balances
-  const previousUsdcPriceRef = useRef<number>(0);
-  const previousUsdtPriceRef = useRef<number>(0);
-  const previousUsdcBalanceRef = useRef<string>("0");
-  const previousUsdtBalanceRef = useRef<string>("0");
+  // Function to update stable coin data
+  const updateStableCoins = useCallback(() => {
+    const usdcBalanceFormatted = usdcBalance
+    const usdtBalanceFormatted = usdtBalance
 
-  // Function to fetch and update stable coin data
-  const fetchStableCoins = async () => {
-    let usdcPrice = previousUsdcPriceRef.current;
-    let usdtPrice = previousUsdtPriceRef.current;
-
-    try {
-      // Fetch token prices in NGN
-      usdcPrice = await fetchTokenPrice("usd-coin");
-      usdtPrice = await fetchTokenPrice("tether");
-
-      // Update previous prices
-      previousUsdcPriceRef.current = usdcPrice;
-      previousUsdtPriceRef.current = usdtPrice;
-
-      // console.log("Fetched new prices:", { usdcPrice, usdtPrice }); // Debug log
-    } catch (error) {
-      console.error("Failed to fetch token prices. Using previous prices.", error);
-      // console.log("Using previous prices:", { usdcPrice, usdtPrice }); // Debug log
-    }
-
-    // Format balances and calculate NGN balances
-    const usdcBalanceFormatted = formatBalance(usdcBalance);
-    const usdtBalanceFormatted = formatBalance(usdtBalance);
-
-    const usdcNgnBalance = (parseFloat(usdcBalanceFormatted) * usdcPrice).toLocaleString(undefined, {
+    const usdcNgnBalance = ((Number.parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })
 
-    const usdtNgnBalance = (parseFloat(usdtBalanceFormatted) * usdtPrice).toLocaleString(undefined, {
+    const usdtNgnBalance = ((Number.parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })
 
-    // Update previous balances
-    previousUsdcBalanceRef.current = usdcBalanceFormatted;
-    previousUsdtBalanceRef.current = usdtBalanceFormatted;
-
-    // console.log("Setting stable coins with NGN balances:", { usdcNgnBalance, usdtNgnBalance }); // Debug log
-
-    // Set stable coins with NGN balances
+    // Set stable coins with updated balances
     setStableCoins([
       {
         id: "1",
         symbol: "USDC",
         name: "USDC $1",
-        balance: usdcBalanceFormatted,
-        ngnBalance: `₦${usdcNgnBalance}`, // Add NGN balance
-        icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+        balance: formatBalance(usdcBalanceFormatted),
+        ngnBalance: `₦${usdcNgnBalance}`,
+        icon: "https://altcoinsbox.com/wp-content/uploads/2023/01/usd-coin-usdc-logo-600x600.webp",
       },
       {
         id: "2",
         symbol: "USDT",
         name: "USDT $1",
-        balance: usdtBalanceFormatted,
-        ngnBalance: `₦${usdtNgnBalance}`, // Add NGN balance
-        icon: "https://cryptologos.cc/logos/tether-usdt-logo.png",
+        balance: formatBalance(usdtBalanceFormatted),
+        ngnBalance: `₦${usdtNgnBalance}`,
+        icon: "https://altcoinsbox.com/wp-content/uploads/2023/01/tether-logo-600x600.webp",
       },
-    ]);
+    ])
+
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setLoading(false)
+    }, 1500)
+  }, [usdcBalance, usdtBalance, usdcPrice, usdtPrice])
+
+  // Update stable coins when balances or prices change
+  useEffect(() => {
+    updateStableCoins()
+  }, [updateStableCoins])
+
+  if (loading) {
+    return <StableCoinListSkeleton />
   }
 
-
-  useEffect(() => {
-    // Fetch stable coins immediately when the component mounts or when balances change
-   
-    fetchStableCoins();
-
-    // Set up an interval to fetch stable coins every 5 seconds
-    intervalRef.current = setInterval(fetchStableCoins, 4000000);
-
-    // Clean up the interval when the component unmounts
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [usdcBalance, usdtBalance]); // Re-run if USDC or USDT balances change
-
   return (
-    <div className="w-full h-full rounded-3xl  p-6">
+    <div className="w-full h-full rounded-3xl p-6">
       <h2 className="text-2xl font-semibold text-white">Your Stable coins</h2>
       <div className="mt-6">
         {stableCoins.map((coin, index) => (
@@ -124,5 +84,5 @@ export default function StableCoinList() {
         ))}
       </div>
     </div>
-  );
+  )
 }

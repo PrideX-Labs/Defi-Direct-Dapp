@@ -59,43 +59,48 @@ export const approveTransaction = async (
       }
   };
 
-export const initiateTransaction = async (
+  export const initiateTransaction = async (
     amount: number,
     tokenAddress: string,
     fiatBankAccountNumber: string,
     fiatAmount: number,
-    publicClient: PublicClient, // Wagmi's publicClient
+    recipientName: string,
+    recipientBank: string,
+    publicClient: PublicClient,
     walletClient: WalletClient
-  ) => {
+  ): Promise<`0x${string}`> => {
     if (!walletClient) {
       console.error("Wallet client is undefined. Connect wallet first.");
-      return;
+      throw new Error("Wallet client is undefined");
     }
-    
-    // initiate the transaction
+  
     try {
-        // Use walletClient to write to the contract
-        const txHash = await walletClient.writeContract({
-          address: CONTRACT_ADDRESS,
-          abi: CONTRACT_ABI,
-          functionName: 'initiateFiatTransaction',
-          args: [tokenAddress as `0x${string}`, BigInt(amount), BigInt(fiatBankAccountNumber), BigInt(fiatAmount)],
-          account: walletClient.account!,
-          chain: publicClient.chain
-        });
-        console.log("Account number:", Number(fiatBankAccountNumber));
-        console.log("amount:", amount);
-        console.log("Transaction hash:", txHash);
-    
-        // Wait for the transaction to be mined
-        const receipt = await publicClient?.waitForTransactionReceipt({ hash: txHash });
-        console.log("Transaction mined:", receipt);
-    
-        return receipt;
-      } catch (error) {
-        console.error("Transaction failed:", error);
-        throw error; // Re-throw the error for handling in the calling function
-      }
+      // Send the transaction and get the hash
+      const txHash = await walletClient.writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'initiateFiatTransaction',
+        args: [
+          tokenAddress as `0x${string}`,
+          BigInt(amount),
+          BigInt(fiatBankAccountNumber),
+          BigInt(fiatAmount),
+          recipientBank,
+          recipientName
+        ],
+        account: walletClient.account!,
+        chain: publicClient.chain
+      });
+  
+      console.log("Account number:", Number(fiatBankAccountNumber));
+      console.log("amount:", amount);
+      console.log("Transaction hash:", txHash);
+  
+      return txHash; // Return the hash immediately
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      throw error; // Re-throw for handling in the caller
+    }
   };
   const contractInterface = new ethers.Interface(CONTRACT_ABI);
 
