@@ -1,4 +1,3 @@
-// src/context/WalletContext.tsx
 "use client";
 
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
@@ -6,16 +5,7 @@ import { useAccount, useDisconnect } from "wagmi";
 import { fetchTokenBalance } from "@/utils/fetchTokenBalance";
 import { fetchTokenPrice } from "@/utils/fetchTokenprice";
 import { walletIcons } from "@/utils/walletIcons";
-
-export type Transaction = {
-  id: string;
-  recipient: string;
-  bank: string;
-  amount: number;
-  status: "successful" | "pending" | "failed";
-  timestamp: string;
-  txHash?: `0x${string}`; // Optional hash for pending transactions
-};
+import { Transaction } from "@/types/transaction";
 
 interface WalletContextType {
   connectedAddress: string | null;
@@ -32,9 +22,9 @@ interface WalletContextType {
   disconnectWallet: () => void;
   refetchTransactions: () => void;
   transactionTrigger: number;
-  pendingTransactions: Transaction[]; // New: Track pending transactions
-  addPendingTransaction: (tx: Transaction) => void; // New: Add a pending transaction
-  clearPendingTransaction: (txHash: `0x${string}`) => void; // New: Clear a pending transaction when confirmed
+  pendingTransactions: Transaction[];
+  addPendingTransaction: (tx: Transaction) => void;
+  clearPendingTransaction: (txHash: `0x${string}`) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -53,7 +43,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [usdtPrice, setUsdtPrice] = useState<number>(0);
   const [lastPriceUpdate, setLastPriceUpdate] = useState<number>(0);
   const [transactionTrigger, setTransactionTrigger] = useState<number>(0);
-  const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]); // New state
+  const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]);
 
   const fetchAndCacheTokenPrices = useCallback(async () => {
     const now = Date.now();
@@ -120,7 +110,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setTotalNgnBalance(0);
       setUsdcPrice(0);
       setUsdtPrice(0);
-      setPendingTransactions([]); // Clear pending transactions on disconnect
+      setPendingTransactions([]);
       return;
     }
 

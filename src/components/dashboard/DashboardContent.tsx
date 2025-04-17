@@ -2,7 +2,7 @@
 
 import { Suspense } from "react"
 import WalletBalance from "@/components/dashboard/wallet-balance"
-import TransactionList from "./transactions/transaction-list"
+import  TransactionList  from "./transactions/transaction-list"
 import StableCoinList from "./stablecoins/stable-coin-list"
 import WalletBalanceSkeleton from "@/components/dashboard/wallet-balance-skeleton"
 import TransactionListSkeleton from "./transactions/transaction-list-skeleton"

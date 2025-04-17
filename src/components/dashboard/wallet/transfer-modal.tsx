@@ -5,19 +5,32 @@ import { ChevronDown } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { initiateTransaction, approveTransaction, parseTransactionReceipt } from "@/services/initiateTransaction";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  initiateTransaction,
+  approveTransaction,
+  parseTransactionReceipt,
+} from "@/services/initiateTransaction";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { convertFiatToToken } from "@/utils/convertFiatToToken";
 import { TOKEN_ADDRESSES } from "@/config";
-import { useWallet, Transaction } from "@/context/WalletContext"; // Import Transaction type
+import { useWallet } from "@/context/WalletContext";
+import { Transaction } from "@/types/transaction";
 import { TransferSummary } from "./transfer-summary";
 import { completeTransaction } from "@/services/completeTransaction";
 
 const tokens = [
-  { name: "USDC", logo: "https://altcoinsbox.com/wp-content/uploads/2023/01/usd-coin-usdc-logo-600x600.webp", address: TOKEN_ADDRESSES["USDC"] },
-  { name: "USDT", logo: "https://altcoinsbox.com/wp-content/uploads/2023/01/tether-logo-600x600.webp", address: TOKEN_ADDRESSES["USDT"] },
+  {
+    name: "USDC",
+    logo: "https://altcoinsbox.com/wp-content/uploads/2023/01/usd-coin-usdc-logo-600x600.webp",
+    address: TOKEN_ADDRESSES["USDC"],
+  },
+  {
+    name: "USDT",
+    logo: "https://altcoinsbox.com/wp-content/uploads/2023/01/tether-logo-600x600.webp",
+    address: TOKEN_ADDRESSES["USDT"],
+  },
 ];
 
 interface Bank {
@@ -44,6 +57,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     amount: "",
   });
   const [verifying, setVerifying] = useState(false);
+  const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
+  const [approvalFee, setApprovalFee] = useState<number>(0);
 
   const {
     usdcBalance,
@@ -52,8 +67,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     usdtPrice,
     fetchBalances,
     refetchTransactions,
-    addPendingTransaction, // Added from WalletContext
-    clearPendingTransaction, // Added from WalletContext
+    addPendingTransaction,
+    clearPendingTransaction,
   } = useWallet();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -61,17 +76,24 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   const usdcBalanceFormatted = usdcBalance;
   const usdtBalanceFormatted = usdtBalance;
 
-  const usdcNgnBalance = ((parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const usdcNgnBalance = ((parseFloat(usdcBalanceFormatted) * usdcPrice) / 10e5).toLocaleString(
+    undefined,
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
 
-  const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const usdtNgnBalance = ((parseFloat(usdtBalanceFormatted) * usdtPrice) / 10e5).toLocaleString(
+    undefined,
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
 
-  const selectedTokenBalance = selectedToken.name === "USDC" ? usdcNgnBalance : usdtNgnBalance;
+  const selectedTokenBalance =
+    selectedToken.name === "USDC" ? usdcNgnBalance : usdtNgnBalance;
 
   const resetForm = () => {
     setFormData({
@@ -83,6 +105,8 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     setShowSummary(false);
     setLoading(false);
     setVerifying(false);
+    setTxHash(null);
+    setApprovalFee(0);
   };
 
   const getBankName = (code: string) => {
@@ -130,7 +154,9 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     }
   }, [open]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -170,18 +196,38 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.bankCode || !formData.accountNumber || !formData.accountName || !formData.amount) {
+    if (
+      !formData.bankCode ||
+      !formData.accountNumber ||
+      !formData.accountName ||
+      !formData.amount
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const amountValue = parseFloat(formData.amount);
-    if (isNaN(amountValue) || amountValue <= 0 || amountValue > parseFloat(selectedTokenBalance.replace(/,/g, ""))) {
+    if (
+      isNaN(amountValue) ||
+      amountValue <= 0 ||
+      amountValue > parseFloat(selectedTokenBalance.replace(/,/g, ""))
+    ) {
       toast.error("Please enter a valid amount within your available balance");
       return;
     }
 
     setLoading(true);
+
+    // Calculate approval fee during submit
+    const price = selectedToken.name === "USDC" ? usdcPrice : usdtPrice;
+    const tokenAmount = await convertFiatToToken(
+      amountValue,
+      selectedToken.name,
+      price
+    );
+    const fee = (tokenAmount * 100) / 10000; // 1% fee
+    setApprovalFee(fee);
+
     setTimeout(() => {
       if (open) {
         setShowSummary(true);
@@ -194,16 +240,23 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     setLoading(true);
     const price = selectedToken.name === "USDC" ? usdcPrice : usdtPrice;
     const amountValue = parseFloat(formData.amount);
-    const tokenAmount = await convertFiatToToken(amountValue, selectedToken.name, price);
+    const tokenAmount = await convertFiatToToken(
+      amountValue,
+      selectedToken.name,
+      price
+    );
 
     try {
       if (!walletClient || !publicClient) {
-        toast.error("Wallet or public client is not available");
-        setLoading(false);
-        return;
+        throw new Error("Wallet or public client is not available");
       }
 
-      await approveTransaction(tokenAmount, selectedToken.address, publicClient, walletClient);
+      await approveTransaction(
+        tokenAmount,
+        selectedToken.address,
+        publicClient,
+        walletClient
+      );
 
       const txHash = await initiateTransaction(
         tokenAmount,
@@ -215,34 +268,85 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
         publicClient,
         walletClient
       );
+      setTxHash(txHash);
 
-      // Add pending transaction immediately after sending
+      // Add pending transaction
+     const fee = (approvalFee /1e6); 
       const pendingTx: Transaction = {
-        id: txHash.slice(0, 8), // Use part of hash as temporary ID
+        id: txHash.slice(0, 8),
         recipient: formData.accountName,
         bank: getBankName(formData.bankCode),
         amount: amountValue,
+        amountSpent: 0, // Pending transactions may not have amountSpent yet
+        transactionFee: fee, // Include transaction fee
+        tokenName: selectedToken.name, // Include token name
         status: "pending",
         timestamp: new Date().toLocaleString("en-US", {
+          year: "numeric",
           month: "short",
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
-        }).replace(",", "."),
+        }).replace(",", ""),
+        rawTimestamp: Date.now(),
         txHash,
       };
       addPendingTransaction(pendingTx);
+
+      // Store initial transaction in backend
+      const transactionData = {
+        txId: txHash,
+        userAddress: walletClient.account.address,
+        token: selectedToken.address,
+        amountSpent: "0.00",
+        transactionFee: approvalFee.toFixed(3), // Use approval fee
+        transactionTimestamp: Math.floor(Date.now() / 1000),
+        fiatBankAccountNumber: formData.accountNumber,
+        fiatBank: getBankName(formData.bankCode),
+        recipientName: formData.accountName,
+        fiatAmount: amountValue.toFixed(2),
+        isCompleted: false,
+        isRefunded: false,
+      };
+
+      console.log("Sending initial transaction data:", transactionData);
+
+      const initialResponse = await fetch(
+        "https://backend-cf8a.onrender.com/transaction/transactions/",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(transactionData),
+        }
+      );
+
+      if (!initialResponse.ok) {
+        const errorText = await initialResponse.text();
+        throw new Error(
+          `Backend POST failed: ${initialResponse.status} - ${errorText}`
+        );
+      }
+
+      const initialResponseData = await initialResponse.json();
+      console.log("Initial backend response:", initialResponseData);
+      const backendId = initialResponseData.id;
+
       await fetchBalances();
 
-      onOpenChange(false); // Close modal
+      onOpenChange(false);
       const truncateAddress = (address: string): string => {
         return `${address.slice(0, 10)}...${address.slice(-4)}`;
       };
-      // Replace toast.loading with toast.info
-      toast.info(`Transaction sent: ${truncateAddress(txHash)}. Waiting for confirmation...`, {
-        autoClose: 5000, // Optional: Close after 5 seconds
-      });
+      toast.info(
+        `Transaction sent: ${truncateAddress(txHash)}. Waiting for confirmation...`,
+        {
+          autoClose: 5000,
+        }
+      );
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       if (receipt.status === "success") {
@@ -262,23 +366,70 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
 
           if (result.success) {
             await completeTransaction(parsedReceipt.txId, parsedReceipt.amount);
+
+            // Update transaction in backend
+            const updateData = {
+              txId: txHash,
+              userAddress: walletClient.account.address,
+              token: selectedToken.address,
+              amountSpent: parsedReceipt.amount.toString(),
+              transactionFee: approvalFee.toFixed(3), // Use approval fee
+              transactionTimestamp: transactionData.transactionTimestamp,
+              fiatBankAccountNumber: formData.accountNumber,
+              fiatBank: getBankName(formData.bankCode),
+              recipientName: formData.accountName,
+              fiatAmount: amountValue.toFixed(2),
+              isCompleted: true,
+              isRefunded: false,
+            };
+
+            console.log("Sending update transaction data:", updateData);
+
+            const updateResponse = await fetch(
+              `https://backend-cf8a.onrender.com/transaction/transactions/${backendId}/`,
+              {
+                method: "PUT",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updateData),
+              }
+            );
+
+            if (!updateResponse.ok) {
+              const errorText = await updateResponse.text();
+              throw new Error(
+                `Backend PUT failed: ${updateResponse.status} - ${errorText}`
+              );
+            }
+
+            const updateResponseData = await updateResponse.json();
+            console.log("Update backend response:", updateResponseData);
+
             await fetchBalances();
-            refetchTransactions(); // Trigger confirmed transaction fetch
-            clearPendingTransaction(txHash); // Remove from pending
-            toast.success(`Your transfer of ₦${formData.amount.toString()} is complete!`);
+            refetchTransactions();
+            clearPendingTransaction(txHash);
+            toast.success(
+              `Your transfer of ₦${formData.amount.toString()} is complete!`
+            );
           } else {
-            toast.error("Could not complete your transfer request");
+            throw new Error("Could not complete your transfer request");
           }
         } else {
-          toast.error("Failed to parse transaction receipt");
+          throw new Error("Failed to parse transaction receipt");
         }
       } else {
-        toast.error(`Transaction failed. Check hash: ${txHash}`);
-        clearPendingTransaction(txHash); // Optionally clear if failed
+        throw new Error(`Transaction failed. Check hash: ${txHash}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      console.error("Transfer error:", error);
       toast.error(`Error: ${errorMessage}`);
+      if (txHash) {
+        clearPendingTransaction(txHash);
+      }
     } finally {
       setLoading(false);
     }
@@ -295,6 +446,9 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
             recipient={formData.accountName}
             accountNumber={formData.accountNumber}
             bankName={formData.bankCode}
+            txHash={txHash}
+            approvalFee={approvalFee}
+            tokenName={selectedToken.name}
             onBack={() => {
               setShowSummary(false);
               setLoading(false);
@@ -352,7 +506,13 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-[#3B3B4F]"
                       >
-                        <img src={token.logo} alt={token.name} width={20} height={20} className="rounded-full" />
+                        <img
+                          src={token.logo}
+                          alt={token.name}
+                          width={20}
+                          height={20}
+                          className="rounded-full"
+                        />
                         {token.name}
                       </button>
                     ))}
@@ -396,7 +556,9 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
                     required
                   />
                 </div>
-                {verifying && <div className="text-sm text-gray-400">Verifying account...</div>}
+                {verifying && (
+                  <div className="text-sm text-gray-400">Verifying account...</div>
+                )}
                 {formData.accountName && (
                   <div className="rounded-xl bg-[#2F2F3A]/50 px-4 py-3">
                     <p className="text-sm text-gray-400">Account Name</p>
@@ -415,7 +577,9 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
                     max={parseFloat(selectedTokenBalance.replace(/,/g, ""))}
                     required
                   />
-                  <p className="text-sm text-gray-400">Available balance: ₦{selectedTokenBalance}</p>
+                  <p className="text-sm text-gray-400">
+                    Available balance: ₦{selectedTokenBalance}
+                  </p>
                 </div>
                 <button
                   type="submit"
