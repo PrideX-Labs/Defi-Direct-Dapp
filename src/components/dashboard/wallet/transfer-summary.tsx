@@ -1,14 +1,17 @@
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
 
 interface TransferSummaryProps {
-  amount: number
-  recipient: string
-  accountNumber: string
-  bankName: string
-  loading: boolean
-  verifying: boolean
-  onBack: () => void
-  onConfirm: () => Promise<void> 
+  amount: number;
+  recipient: string;
+  accountNumber: string;
+  bankName: string;
+  loading: boolean;
+  verifying: boolean;
+  approvalFee: number;
+  tokenName: string;
+  onBack: () => void;
+  onConfirm: () => Promise<void>;
+  txHash?: `0x${string}` | null;
 }
 
 export function TransferSummary({
@@ -17,24 +20,45 @@ export function TransferSummary({
   recipient,
   accountNumber,
   bankName,
+  approvalFee,
+  tokenName,
   onBack,
   onConfirm,
+  txHash,
 }: TransferSummaryProps) {
+
+
+  console.log("approval fee", approvalFee);
+  console.log("approval real fee", approvalFee/1e6);
   const formatDateTime = (date: Date): string => {
-    const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."]
-    const month = months[date.getMonth()]
-    const day = date.getDate()
-    let hours = date.getHours()
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    const ampm = hours >= 12 ? 'pm' : 'am'
-    
-    hours = hours % 12
-    hours = hours ? hours : 12 // the hour '0' should be '12'
-    
-    return `${month} ${day}, ${hours}:${minutes}${ampm}`
-  }
+    const months = [
+      "Jan.",
+      "Feb.",
+      "Mar.",
+      "Apr.",
+      "May",
+      "June",
+      "July",
+      "Aug.",
+      "Sep.",
+      "Oct.",
+      "Nov.",
+      "Dec.",
+    ];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "pm" : "am";
+
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${month} ${day}, ${hours}:${minutes}${ampm}`;
+  };
+
   return (
-    <div className="w-full max-w-xl rounded-[2.5rem] bg-gradient-to-b from-[#1C1C27] to-[#14141B] p-6">
+    <div className="w-full max-w-xl rounded-[2.5rem] bg-gradient-to-b from-[#1C1C27] to-[#1C1C27] p-6">
       <div className="flex items-center gap-3">
         <button onClick={onBack} className="text-white hover:opacity-80">
           <ArrowLeft className="h-6 w-6" />
@@ -47,11 +71,21 @@ export function TransferSummary({
         <p className="mt-2 text-lg text-gray-500">TO {recipient}</p>
       </div>
 
-      <div className="mt-8 overflow-hidden rounded-3xl bg-gradient-to-b from-[#1C1C27]/80 to-[#14141B]/60">
+      <div className="mt-8 overflow-hidden rounded-3xl bg-gradient-to-b from-[#1C1C27]/80 to-[#1C1C27]/60">
         <div className="space-y-6 p-6">
           <div className="flex justify-between">
             <p className="text-base text-white">Transfer type</p>
             <p className="text-sm text-gray-500">Bank Transfer</p>
+          </div>
+
+          <div className={txHash ? "flex justify-between" : "hidden justify-between"}>
+            <p className="text-base text-white">Transaction ID</p>
+            <p
+              className="text-xs text-gray-500 text-right"
+              style={{ wordBreak: "break-all" }}
+            >
+              {txHash || "Not available"}
+            </p>
           </div>
 
           <div className="flex justify-between">
@@ -65,35 +99,25 @@ export function TransferSummary({
           </div>
 
           <div className="flex justify-between">
-            <p className="text-base text-white">Smart Contract ID</p>
-            <p className="text-sm text-gray-500">1A1Z6MEA....9UuC</p>
-          </div>
-
-          <div className="flex justify-between gap-28">
-            <p className="text-base text-white">Transaction ID</p>
-            <p className="text-xs text-gray-500 text-right" style={{ wordBreak: "break-all" }}>
-              0x5eD8b7a3F9cD21A8a74fBc9E716D1698a9D4f7Cb563E9F6a7BBD2E9C4F1A3B7
-            </p>
-          </div>
-
-          <div className="flex justify-between">
             <p className="text-lg text-white">Time</p>
             <p className="text-sm text-gray-500">{formatDateTime(new Date())}</p>
           </div>
 
           <div className="flex justify-between">
             <p className="text-base text-white">Fee</p>
-            <p className="text-sm text-gray-500">-1.00000usdt</p>
+            <p className="text-sm text-gray-500">
+              -{(approvalFee / 1e6).toFixed(3)} {tokenName}
+            </p>
           </div>
         </div>
       </div>
 
       <button
         onClick={onConfirm}
-        disabled={loading} // Disable the button when loading
+        disabled={loading}
         className={`mt-6 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-purple-500 py-4 text-lg ${
           loading
-            ? "bg-purple-600/50 cursor-not-allowed" // Dim and disable the button when loading
+            ? "bg-purple-600/50 cursor-not-allowed"
             : "bg-gradient-to-r from-purple-600 to-purple-500 hover:opacity-90"
         } font-medium text-white transition-opacity`}
       >

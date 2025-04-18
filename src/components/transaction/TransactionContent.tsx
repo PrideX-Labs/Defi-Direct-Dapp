@@ -1,158 +1,196 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { retrieveTransactions } from "@/services/retrieveTransactions"
-import { useWallet } from "@/context/WalletContext"
-import { usePublicClient } from "wagmi"
-import TransactionContentSkeleton from "./transaction-content-skeleton"
-
-export type Transaction = {
-  id: string
-  name: string
-  bank: string
-  amount: string
-  status: string
-  date: string
-  timestamp: number // For date filtering
-}
+import { useState, useEffect } from "react";
+import { useWallet } from "@/context/WalletContext";
+import { retrieveTransactions } from "@/services/retrieveTransactions";
+import TransactionContentSkeleton from "./transaction-content-skeleton";
+import { Transaction } from "@/types/transaction";
+import { TransactionDetailsModal } from "../dashboard/transactions/transaction-details-modal";
+import { TOKEN_ADDRESSES } from "@/config";
 
 type TransactionResult = {
-  user: `0x${string}`
-  token: `0x${string}`
-  amount: bigint
-  amountSpent: bigint
-  transactionFee: bigint
-  transactionTimestamp: bigint
-  fiatBankAccountNumber: bigint
-  fiatBank: string
-  recipientName: string
-  fiatAmount: bigint
-  isCompleted: boolean
+  user: `0x${string}`;
+  token: `0x${string}`;
+  amount: bigint;
+  amountSpent: bigint;
+  transactionFee: bigint;
+  transactionTimestamp: bigint;
+  fiatBankAccountNumber: bigint;
+  fiatBank: string;
+  recipientName: string;
+  fiatAmount: number;
+  isCompleted: boolean;
+  isRefunded: boolean;
+  txId: string;
+};
+
+// Define the valid token names
+type TokenName = keyof typeof TOKEN_ADDRESSES;
+
+const formatTimestamp = (timestamp: bigint) => {
+  const date = new Date(Number(timestamp) * 1000);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+  return {
+    formatted: date.toLocaleString("en-US", options).replace(",", "."),
+    raw: Number(timestamp) * 1000, // Store raw timestamp in milliseconds
+  };
+};
+
+const getStatus = (
+  isCompleted: boolean,
   isRefunded: boolean
-}
+): "successful" | "pending" | "failed" => {
+  if (!isCompleted && !isRefunded) return "pending";
+  if (isCompleted && isRefunded) return "failed";
+  return "successful";
+};
 
-function TransactionContent() {
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState("All types")
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
-  const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days")
-  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const formatTransaction = (
+  transaction: TransactionResult,
+  pendingTransactions: Transaction[]
+): Transaction => {
+  const { formatted, raw } = formatTimestamp(transaction.transactionTimestamp);
+  // Map token address to token name
+  const tokenName = (Object.entries(TOKEN_ADDRESSES) as [TokenName, `0x${string}`][]).find(
+    ([, address]) => address === transaction.token
+  )?.[0] || "Unknown";
 
-  const { connectedAddress } = useWallet()
-  const publicClient = usePublicClient()
+  // Check for matching pending transaction
+  const pendingTx = pendingTransactions.find(
+    (pt) => pt.txHash && pt.txHash === transaction.txId
+  );
 
-  const statusFilters = ["All types", "Successful", "Pending", "Failed"]
-  const dateFilters = ["Last 7 days", "Last 30 days", "Last 90 days", "All time"]
-
-  // Function to format the timestamp into a human-readable format and return timestamp
-  const formatTimestamp = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) * 1000)
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }
-    return {
-      formatted: date.toLocaleString("en-US", options).replace(",", "."),
-      timestamp: date.getTime(), // For filtering
+  // Use pending transaction's transactionFee if available
+  let transactionFee: number | undefined;
+  if (pendingTx && pendingTx.transactionFee !== undefined) {
+    transactionFee = pendingTx.transactionFee; // Use approvalFee from TransferModal
+  } else {
+    try {
+      // Convert backend's bigint transactionFee to number
+      const feeValue = Number(transaction.transactionFee) / 1e18;
+      if (isNaN(feeValue) || !isFinite(feeValue)) {
+        console.error(`Invalid transactionFee for txId ${transaction.txId}: ${transaction.transactionFee}`);
+        transactionFee = undefined; // Don't display invalid fees
+      } else {
+        transactionFee = Math.abs(feeValue)/1e6; // Ensure positive, matching TransferSummary
+      }
+    } catch (error) {
+      console.error(`Error processing transactionFee for txId ${transaction.txId}:`, error);
+      transactionFee = undefined; // Don't display invalid fees
     }
   }
 
-  // Function to determine the status
-  const getStatus = (isCompleted: boolean, isRefunded: boolean) => {
-    if (!isCompleted && !isRefunded) return "pending"
-    if (isCompleted && isRefunded) return "failed"
-    if (isCompleted && !isRefunded) return "successful"
-  }
+  return {
+    id: transaction.txId,
+    recipient: transaction.recipientName,
+    bank: transaction.fiatBank,
+    amount: transaction.fiatAmount,
+    amountSpent: Number(transaction.amountSpent) / 1e18,
+    transactionFee, // Use pendingTx fee or scaled backend fee
+    tokenName,
+    status: getStatus(transaction.isCompleted, transaction.isRefunded),
+    timestamp: formatted,
+    rawTimestamp: raw,
+    txHash: transaction.txId as `0x${string}`,
+  };
+};
+
+export default function TransactionContent() {
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState("All types");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [selectedDateFilter, setSelectedDateFilter] = useState("Last 7 days");
+  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const { connectedAddress, transactionTrigger, pendingTransactions } = useWallet();
+
+  const statusFilters = ["All types", "Successful", "Pending", "Failed"];
+  const dateFilters = ["Last 7 days", "Last 30 days", "Last 90 days", "All time"];
 
   // Fetch transactions
   useEffect(() => {
     const fetchTransactions = async () => {
-      if (!connectedAddress || !publicClient) {
-        setError("No connected wallet address or public client found.")
-        setLoading(false)
-        return
-      }
-
-      const supportedChains = [
-        1, 10, 25, 56, 137, 338, 43114, 534351, 534352,
-        8453, 1101, 11155111, 1135, 4202, 41923, 656476,
-        42161, 1001, 10000070
-      ]
-      const contractDeployedChains = [534351] // Scroll Sepolia
-      const currentChainId = publicClient.chain?.id
-
-      if (!currentChainId || !supportedChains.includes(currentChainId)) {
-        setError("This chain is not supported by the application.")
-        setTransactions([])
-        setLoading(false)
-        return
-      }
-
-      if (!contractDeployedChains.includes(currentChainId)) {
-        setError("Contract not deployed on this chain.")
-        setTransactions([])
-        setLoading(false)
-        return
+      if (!connectedAddress) {
+        setError("No connected wallet address found.");
+        setLoading(false);
+        return;
       }
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-        const transactionResult = await retrieveTransactions(publicClient!, connectedAddress as `0x${string}`)
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const transactionResult = await retrieveTransactions(
+          connectedAddress as `0x${string}`
+        );
+
+        console.log("Transaction result:", transactionResult);
 
         if (Array.isArray(transactionResult) && transactionResult.length > 0) {
-          const formattedTransactions = transactionResult.map((tx: TransactionResult, index: number) => {
-            const { formatted, timestamp } = formatTimestamp(tx.transactionTimestamp)
-            return {
-              id: (index + 1).toString(),
-              name: tx.recipientName,
-              bank: tx.fiatBank,
-              amount: Number(tx.fiatAmount).toLocaleString(),
-              status: getStatus(tx.isCompleted, tx.isRefunded) as string,
-              date: formatted,
-              timestamp,
-            }
-          })
-          setTransactions(formattedTransactions)
-          setError(null)
+          const formattedTransactions = transactionResult.map((tx: TransactionResult) =>
+            formatTransaction(tx, pendingTransactions)
+          );
+          setTransactions(formattedTransactions);
+          setError(null);
         } else {
-          setTransactions([])
-          setError(null)
+          setTransactions([]);
+          setError(null);
         }
-      } catch (err: unknown) { // Changed from any to unknown
-        if (err instanceof Error && err.message?.includes("contract not deployed") || (err instanceof Error && err.message?.includes("code=CALL_EXCEPTION"))) {
-          setError("Contract not deployed on this chain.")
-        } else if (err instanceof Error && (err.message?.includes("network") || err.message?.includes("timeout"))) {
-          setError("Network error while fetching transactions.")
-        } else {
-          setError("Failed to fetch transactions. Please try again.")
-          console.error("Error fetching transactions:", err)
-        }
-        setTransactions([])
+      } catch (err: unknown) {
+        setError("Failed to fetch transactions. Please try again.");
+        console.error("Error fetching transactions:", err);
+        setTransactions([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchTransactions()
-  }, [connectedAddress, publicClient])
+    fetchTransactions();
+  }, [connectedAddress, transactionTrigger, pendingTransactions]);
 
   // Filter transactions by status and date
   const filteredTransactions = transactions.filter((transaction) => {
-    const statusMatch = selectedStatusFilter === "All types" || transaction.status.toLowerCase() === selectedStatusFilter.toLowerCase()
-    const now = Date.now()
-    let dateMatch = true
+    const statusMatch =
+      selectedStatusFilter === "All types" ||
+      transaction.status.toLowerCase() === selectedStatusFilter.toLowerCase();
+    const now = Date.now();
+    let dateMatch = true;
     if (selectedDateFilter !== "All time") {
-      const days = selectedDateFilter === "Last 7 days" ? 7 : selectedDateFilter === "Last 30 days" ? 30 : 90
-      const cutoff = now - days * 24 * 60 * 60 * 1000
-      dateMatch = transaction.timestamp >= cutoff
+      const days =
+        selectedDateFilter === "Last 7 days"
+          ? 7
+          : selectedDateFilter === "Last 30 days"
+            ? 30
+            : 90;
+      const cutoff = now - days * 24 * 60 * 60 * 1000;
+      dateMatch = transaction.rawTimestamp >= cutoff;
     }
-    return statusMatch && dateMatch
-  })
+    console.log(
+      `Filtering transaction ${transaction.id}: statusMatch=${statusMatch}, dateMatch=${dateMatch}, rawTimestamp=${transaction.rawTimestamp}`
+    );
+    return statusMatch && dateMatch;
+  });
+
+  // Combine pending and confirmed transactions, prioritizing pending
+  const allTransactions = [
+    ...pendingTransactions,
+    ...filteredTransactions.filter(
+      (confirmed) =>
+        !pendingTransactions.some(
+          (pending) => pending.txHash && confirmed.txHash === pending.txHash
+        )
+    ),
+  ].sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+
+  console.log("All transactions:", allTransactions);
 
   // Render status filter UI
   const renderStatusFilterUI = () => (
@@ -191,8 +229,8 @@ function TransactionContent() {
               <button
                 key={filter}
                 onClick={() => {
-                  setSelectedStatusFilter(filter)
-                  setIsStatusDropdownOpen(false)
+                  setSelectedStatusFilter(filter);
+                  setIsStatusDropdownOpen(false);
                 }}
                 className={`w-full px-4 py-2 text-left hover:bg-[#453f4c] ${
                   selectedStatusFilter === filter ? "bg-purple-600" : ""
@@ -205,9 +243,9 @@ function TransactionContent() {
         )}
       </div>
     </>
-  )
+  );
 
-  // Render date filter UI as a dropdown on all screens
+  // Render date filter UI
   const renderDateFilterUI = () => (
     <div className="relative">
       <button
@@ -230,8 +268,8 @@ function TransactionContent() {
             <button
               key={filter}
               onClick={() => {
-                setSelectedDateFilter(filter)
-                setIsDateDropdownOpen(false)
+                setSelectedDateFilter(filter);
+                setIsDateDropdownOpen(false);
               }}
               className={`w-full px-4 py-2 text-left hover:bg-[#453f4c] ${
                 selectedDateFilter === filter ? "bg-purple-600" : ""
@@ -243,10 +281,10 @@ function TransactionContent() {
         </div>
       )}
     </div>
-  )
+  );
 
   if (loading) {
-    return <TransactionContentSkeleton />
+    return <TransactionContentSkeleton />;
   }
 
   if (error) {
@@ -262,76 +300,38 @@ function TransactionContent() {
               <p className="text-gray-400 mb-4">{error}</p>
               <button
                 onClick={() => {
-                  setLoading(true)
-                  setError(null)
+                  setLoading(true);
+                  setError(null);
                   const fetchTransactions = async () => {
-                    if (!connectedAddress || !publicClient) {
-                      setError("No connected wallet address or public client found.")
-                      setLoading(false)
-                      return
-                    }
-
-                    const supportedChains = [
-                      1, 10, 25, 56, 137, 338, 43114, 534351, 534352,
-                      8453, 1101, 11155111, 1135, 4202, 41923, 656476,
-                      42161, 1001, 10000070
-                    ]
-                    const contractDeployedChains = [534351]
-                    const currentChainId = publicClient.chain?.id
-
-                    if (!currentChainId || !supportedChains.includes(currentChainId)) {
-                      setError("This chain is not supported by the application.")
-                      setTransactions([])
-                      setLoading(false)
-                      return
-                    }
-
-                    if (!contractDeployedChains.includes(currentChainId)) {
-                      setError("Contract not deployed on this chain.")
-                      setTransactions([])
-                      setLoading(false)
-                      return
+                    if (!connectedAddress) {
+                      setError("No connected wallet address found.");
+                      setLoading(false);
+                      return;
                     }
 
                     try {
                       const transactionResult = await retrieveTransactions(
-                        publicClient!,
-                        connectedAddress as `0x${string}`,
-                      )
+                        connectedAddress as `0x${string}`
+                      );
                       if (Array.isArray(transactionResult) && transactionResult.length > 0) {
-                        const formattedTransactions = transactionResult.map((tx: TransactionResult, index: number) => {
-                          const { formatted, timestamp } = formatTimestamp(tx.transactionTimestamp)
-                          return {
-                            id: (index + 1).toString(),
-                            name: tx.recipientName,
-                            bank: tx.fiatBank,
-                            amount: Number(tx.fiatAmount).toLocaleString(),
-                            status: getStatus(tx.isCompleted, tx.isRefunded) as string,
-                            date: formatted,
-                            timestamp,
-                          }
-                        })
-                        setTransactions(formattedTransactions)
-                        setError(null)
+                        const formattedTransactions = transactionResult.map((tx: TransactionResult) =>
+                          formatTransaction(tx, pendingTransactions)
+                        );
+                        setTransactions(formattedTransactions);
+                        setError(null);
                       } else {
-                        setTransactions([])
-                        setError(null)
+                        setTransactions([]);
+                        setError(null);
                       }
-                    } catch (err: unknown) { // Changed from any to unknown
-                      if (err instanceof Error && err.message?.includes("contract not deployed") || (err instanceof Error && err.message?.includes("code=CALL_EXCEPTION"))) {
-                        setError("Contract not deployed on this chain.")
-                      } else if (err instanceof Error && (err.message?.includes("network") || err.message?.includes("timeout"))) {
-                        setError("Network error while fetching transactions.")
-                      } else {
-                        setError("Failed to fetch transactions. Please try again.")
-                        console.error("Error fetching transactions:", err)
-                      }
-                      setTransactions([])
+                    } catch (err: unknown) {
+                      setError("Failed to fetch transactions. Please try again.");
+                      console.error("Error fetching transactions:", err);
+                      setTransactions([]);
                     } finally {
-                      setLoading(false)
+                      setLoading(false);
                     }
-                  }
-                  fetchTransactions()
+                  };
+                  fetchTransactions();
                 }}
                 className="px-4 py-2 bg-purple-600 rounded-full hover:bg-purple-700 transition-colors"
               >
@@ -341,10 +341,10 @@ function TransactionContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  if (filteredTransactions.length === 0) {
+  if (allTransactions.length === 0) {
     return (
       <div className="h-screen text-white px-2 sm:px-4">
         <div className="bg-gradient-to-b from-[#151021] via-[#151021] to-[#2f1256] rounded-t-2xl p-3 sm:p-4 lg:p-6 h-full flex flex-col">
@@ -361,7 +361,7 @@ function TransactionContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -374,19 +374,23 @@ function TransactionContent() {
         <div
           className="divide-y divide-gray-700 overflow-y-auto flex-1"
           style={{
-            scrollbarWidth: "none", // Firefox
-            msOverflowStyle: "none", // IE/Edge
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           <style jsx>{`
             div::-webkit-scrollbar {
-              display: none; // Chrome, Safari, Edge
+              display: none;
             }
           `}</style>
-          {filteredTransactions.map((transaction) => (
+          {allTransactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 gap-3 sm:gap-0"
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 gap-3 sm:gap-0 cursor-pointer hover:bg-[#2F2F3A]/50 rounded-lg"
+              onClick={() => {
+                setSelectedTransaction(transaction);
+                setModalOpen(true);
+              }}
             >
               <div className="flex items-center">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#2c1053] rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
@@ -400,7 +404,7 @@ function TransactionContent() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-sm sm:text-base">{transaction.name}</h3>
+                  <h3 className="font-medium text-sm sm:text-base">{transaction.recipient}</h3>
                   <p className="text-xs sm:text-sm text-gray-500">{transaction.bank}</p>
                 </div>
               </div>
@@ -414,18 +418,26 @@ function TransactionContent() {
                         : "text-red-500"
                   }`}
                 >
-                  NGN{transaction.amount}
+                  NGN{transaction.amount.toLocaleString()}
                 </p>
+                {transaction.transactionFee !== undefined && (
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Fee: {transaction.transactionFee.toFixed(3)} {transaction.tokenName || "Token"}
+                  </p>
+                )}
                 <p className="text-xs sm:text-sm text-gray-500">
-                  {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)} | {transaction.date}
+                  {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)} | {transaction.timestamp}
                 </p>
               </div>
             </div>
           ))}
         </div>
+        <TransactionDetailsModal
+          transaction={selectedTransaction}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+        />
       </div>
     </div>
-  )
+  );
 }
-
-export default TransactionContent
