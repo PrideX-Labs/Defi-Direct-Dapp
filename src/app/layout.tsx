@@ -5,7 +5,6 @@ import { Inter } from 'next/font/google';
 import StyledComponentsRegistry from '@/lib/AntdRegistry';
 import { Providers } from '@/components/Providers';
 import { WalletProvider } from '@/context/WalletContext';
-import Footer from '@/components/Footer';
 
 const roboto = Inter({
   subsets: ['latin'],

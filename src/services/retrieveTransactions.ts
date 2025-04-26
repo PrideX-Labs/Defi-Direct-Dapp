@@ -1,6 +1,40 @@
 // src/services/retrieveTransactions.ts
 
-export const retrieveTransactions = async (userAddress: `0x${string}`) => {
+// Define proper interfaces for transaction types
+interface BackendTransaction {
+  userAddress?: string;
+  txId?: string;
+  isCompleted?: boolean;
+  token?: string;
+  amount?: string;
+  amountSpent?: string;
+  transactionFee?: string;
+  transactionTimestamp?: string;
+  fiatBankAccountNumber?: string;
+  fiatBank?: string;
+  recipientName?: string;
+  fiatAmount?: string;
+  isRefunded?: boolean;
+}
+
+// Update to match TransactionResult in src/types/transaction.ts
+interface FormattedTransaction {
+  user: `0x${string}`; // Changed from string to `0x${string}`
+  token: `0x${string}`; // Changed from string to `0x${string}`
+  amount: bigint;
+  amountSpent: bigint;
+  transactionFee: bigint;
+  transactionTimestamp: bigint;
+  fiatBankAccountNumber: bigint;
+  fiatBank: string;
+  recipientName: string;
+  fiatAmount: number;
+  isCompleted: boolean;
+  isRefunded: boolean;
+  txId: string;
+}
+
+export const retrieveTransactions = async (userAddress: `0x${string}`): Promise<FormattedTransaction[]> => {
   if (!userAddress) {
     console.error("User address is undefined. Provide a valid address.");
     return [];
@@ -8,7 +42,7 @@ export const retrieveTransactions = async (userAddress: `0x${string}`) => {
 
   try {
     // Fetch transactions from the backend
-    let backendTransactions: any[] = [];
+    let backendTransactions: BackendTransaction[] = [];
     try {
       const response = await fetch(
         "https://backend-cf8a.onrender.com/transaction/transactions/",
@@ -40,7 +74,7 @@ export const retrieveTransactions = async (userAddress: `0x${string}`) => {
 
     // Filter and deduplicate backend transactions
     const dedupedBackendTransactions = backendTransactions
-      .filter((tx: any) => {
+      .filter((tx: BackendTransaction) => {
         const isValid =
           tx.userAddress &&
           tx.userAddress.toLowerCase() === userAddress.toLowerCase();
@@ -49,7 +83,7 @@ export const retrieveTransactions = async (userAddress: `0x${string}`) => {
         }
         return isValid;
       })
-      .reduce((acc: any[], tx: any) => {
+      .reduce((acc: BackendTransaction[], tx: BackendTransaction) => {
         const existing = acc.find((t) => t.txId === tx.txId);
         if (!existing && tx.txId) {
           acc.push(tx);
@@ -67,13 +101,13 @@ export const retrieveTransactions = async (userAddress: `0x${string}`) => {
 
     // Map to consistent format
     const formattedTransactions = dedupedBackendTransactions.map(
-      (tx: any, index: number) => {
+      (tx: BackendTransaction, index: number): FormattedTransaction => {
         // Validate transactionTimestamp
         const timestamp = Number(tx.transactionTimestamp) || Math.floor(Date.now() / 1000);
-        const formattedTx = {
-          user: userAddress,
-          token: tx.token || "0x0",
-          amount: BigInt(tx.amount || 0),
+        const formattedTx: FormattedTransaction = {
+          user: userAddress, // Already correct type
+          token: (tx.token || "0x0") as `0x${string}`, // Cast to correct type
+          amount: BigInt(tx.amount || "0"),
           amountSpent: BigInt(
             Math.round(parseFloat(tx.amountSpent || "0") * 1e18)
           ),
@@ -84,7 +118,7 @@ export const retrieveTransactions = async (userAddress: `0x${string}`) => {
           fiatBankAccountNumber: BigInt(tx.fiatBankAccountNumber || "0"),
           fiatBank: tx.fiatBank || "Unknown",
           recipientName: tx.recipientName || "Unknown",
-          fiatAmount: parseFloat(tx.fiatAmount) || 0,
+          fiatAmount: parseFloat(tx.fiatAmount || "0"),
           isCompleted: tx.isCompleted || false,
           isRefunded: tx.isRefunded || false,
           txId: tx.txId || `tx-${index}-${timestamp}`,
