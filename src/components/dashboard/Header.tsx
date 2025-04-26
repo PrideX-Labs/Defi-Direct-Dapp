@@ -23,7 +23,11 @@ const Header: React.FC<{
   const getPageTitle = () => {
     if (pathname?.includes("transaction")) return "Transactions"
     if (pathname?.includes("settings")) return "Settings"
-    return "Welcome 👋"
+    return (
+      <span className="inline-flex items-center">
+        Welcome <span className=" animate-bounce inline-block">👋</span>
+      </span>
+    )
   }
 
   const truncateAddress = (address: string) => {
