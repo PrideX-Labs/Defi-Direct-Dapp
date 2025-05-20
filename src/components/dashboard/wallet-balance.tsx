@@ -1,18 +1,28 @@
-// src/components/dashboard/wallet-balance.tsx
-"use client";
+"use client"
 
-import { ArrowUpRight } from "lucide-react";
-import { useState } from "react";
-import { TransferModal } from "./wallet/transfer-modal";
-import { useWallet } from "@/context/WalletContext";
-
-
-
+import { ArrowUpRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { TransferModal } from "./wallet/transfer-modal"
+import { useWallet } from "@/context/WalletContext"
+import WalletBalanceSkeleton from "./wallet-balance-skeleton"
 
 export default function WalletBalance() {
-  const [isOpen, setIsOpen] = useState(false);
-  const { totalNgnBalance } = useWallet(); 
-  
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const { totalNgnBalance } = useWallet()
+
+  // Simulate loading for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1500)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return <WalletBalanceSkeleton />
+  }
 
   return (
     <>
@@ -35,7 +45,7 @@ export default function WalletBalance() {
           </button>
         </div>
       </div>
-      <TransferModal open={isOpen} onOpenChange={setIsOpen}  />
+      <TransferModal open={isOpen} onOpenChange={setIsOpen} />
     </>
-  );
+  )
 }
