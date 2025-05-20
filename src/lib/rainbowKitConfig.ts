@@ -46,7 +46,7 @@ const config = getDefaultConfig({
     
   ], // Supported chains
   ssr: true, // Enable server-side rendering (SSR) support
- multiInjectedProviderDiscovery: true
+ 
 });
 
 export { config };

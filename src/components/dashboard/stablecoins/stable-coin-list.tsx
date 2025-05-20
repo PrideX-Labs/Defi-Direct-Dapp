@@ -6,6 +6,7 @@ import { formatBalance } from "@/utils/formatBalance"
 import { useEffect, useState, useCallback } from "react"
 import StableCoinListSkeleton from "./stable-coin-list-skeleton"
 
+// Export the StableCoin type
 export type StableCoin = {
   id: string
   name: string
@@ -14,6 +15,8 @@ export type StableCoin = {
   ngnBalance: string
   icon: string
 }
+
+
 
 export default function StableCoinList() {
   const { usdcBalance, usdtBalance, usdcPrice, usdtPrice } = useWallet()
@@ -71,7 +74,7 @@ export default function StableCoinList() {
   }
 
   return (
-    <div className="w-full h-full rounded-3xl p-6">
+    <div className="w-full h-full rounded-3xl  p-6">
       <h2 className="text-2xl font-semibold text-white">Your Stable coins</h2>
       <div className="mt-6">
         {stableCoins.map((coin, index) => (
@@ -86,3 +89,4 @@ export default function StableCoinList() {
     </div>
   )
 }
+

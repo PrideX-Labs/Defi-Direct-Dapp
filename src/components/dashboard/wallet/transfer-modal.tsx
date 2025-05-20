@@ -40,8 +40,9 @@ interface Bank {
 }
 
 interface TransferModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  balance: number
 }
 
 export function TransferModal({ open, onOpenChange }: TransferModalProps) {
@@ -142,7 +143,11 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     if (open) {
       fetchBanks();
     }
-
+    if (open) {
+      fetchPrices(); 
+      const interval = setInterval(fetchPrices, 5000);
+      return () => clearInterval(interval); 
+    }
     return () => {
       isMounted = false;
     };
@@ -150,7 +155,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
 
   useEffect(() => {
     if (!open) {
-      resetForm();
+      resetForm(); 
     }
   }, [open]);
 
@@ -216,6 +221,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
       return;
     }
 
+    // Set loading state and wait for 4 seconds before showing the summary
     setLoading(true);
 
     // Calculate approval fee during submit
@@ -231,7 +237,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
     setTimeout(() => {
       if (open) {
         setShowSummary(true);
-        setLoading(false);
+        setLoading(false); // Reset loading state after the delay
       }
     }, 2000);
   };
@@ -239,6 +245,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
   const handleConfirmTransfer = async () => {
     setLoading(true);
     const price = selectedToken.name === "USDC" ? usdcPrice : usdtPrice;
+    console.log("Withdrawal price:", price);
     const amountValue = parseFloat(formData.amount);
     const tokenAmount = await convertFiatToToken(
       amountValue,
@@ -585,7 +592,7 @@ export function TransferModal({ open, onOpenChange }: TransferModalProps) {
                   type="submit"
                   className={`mt-6 flex w-full items-center bg-purple-600/50 justify-center gap-2 rounded-xl px-4 py-3 text-white transition-opacity`}
                 >
-                  {loading ? "Loading..." : "Transfer"}
+                  {loading ? "Loading..." : "Transfer"} {/* Changed "Processing" to "Loading" */}
                 </button>
               </form>
             </div>

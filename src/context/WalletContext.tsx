@@ -66,7 +66,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [lastPriceUpdate]);
 
   const fetchBalances = useCallback(async () => {
-    if (!address) return;
+    if (!address || !connector) return;
 
     try {
       const [usdcBalance, usdtBalance] = await Promise.all([
@@ -74,18 +74,21 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         fetchTokenBalance("USDT", address),
       ]);
 
-      setUsdcBalance(usdcBalance);
-      setUsdtBalance(usdtBalance);
+      const walletId = connector.id?.toLowerCase?.();
+      setWalletIcon(walletIcons[walletId] || null);
+      setWalletName(connector.name || null);
 
       const usdc = parseFloat(usdcBalance) || 0;
       const usdt = parseFloat(usdtBalance) || 0;
       const totalUp = usdc * usdcPrice + usdt * usdtPrice;
-      const total = totalUp / 10e5;
+      const total = totalUp / 1_000_000; // Adjust if needed
       setTotalNgnBalance(total);
+      setUsdcBalance(usdcBalance);
+      setUsdtBalance(usdtBalance);
     } catch (error) {
       console.error("Failed to fetch token balances:", error);
     }
-  }, [address, usdcPrice, usdtPrice]);
+  }, [address, connector, usdcPrice, usdtPrice]);
 
   const refetchTransactions = useCallback(() => {
     setTransactionTrigger((prev) => prev + 1);
@@ -114,13 +117,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const walletId = connector.id.toLowerCase();
-    setWalletIcon(walletIcons[walletId] || null);
-    setWalletName(connector.name || null);
-
     fetchBalances();
-    const priceIntervalId = setInterval(fetchAndCacheTokenPrices, 5 * 60 * 1000);
     fetchAndCacheTokenPrices();
+    const priceIntervalId = setInterval(fetchAndCacheTokenPrices, 5 * 60 * 1000);
 
     return () => {
       clearInterval(priceIntervalId);
@@ -141,7 +140,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         usdcPrice,
         usdtPrice,
         fetchBalances,
-        disconnectWallet: disconnect,
+        disconnectWallet: () => disconnect(),
         refetchTransactions,
         transactionTrigger,
         pendingTransactions,

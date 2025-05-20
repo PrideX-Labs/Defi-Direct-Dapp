@@ -31,7 +31,7 @@ export default function WalletBalance() {
           <h2 className="text-lg font-medium text-white">Wallet Balance</h2>
           <p className="text-4xl font-semibold text-white">
             ₦
-            {totalNgnBalance.toLocaleString(undefined, {
+            {balance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -45,7 +45,11 @@ export default function WalletBalance() {
           </button>
         </div>
       </div>
+<<<<<<< HEAD
       <TransferModal open={isOpen} onOpenChange={setIsOpen} />
+=======
+      <TransferModal open={isOpen} onOpenChange={setIsOpen} balance={balance} />
+>>>>>>> a03863cac264918cdacdd658fe643f539b26d74d
     </>
   )
 }

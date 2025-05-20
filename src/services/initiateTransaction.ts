@@ -82,8 +82,6 @@ export const initiateTransaction = async (
         BigInt(amount),
         BigInt(fiatBankAccountNumber),
         BigInt(fiatAmount),
-        recipientBank,
-        recipientName,
       ],
       account: walletClient.account!,
       chain: publicClient.chain,
